@@ -40,6 +40,10 @@ public class PropertyService {
 
     @Transactional
     public PropertyResponse create(PropertyRequest request) {
+        var existing = propertyRepository.findByReference(request.reference());
+        if (existing.isPresent()) {
+            return toResponse(existing.get());
+        }
         Property property = new Property();
         copyRequest(request, property);
         return toResponse(propertyRepository.save(property));

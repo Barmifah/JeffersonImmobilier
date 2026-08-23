@@ -13,6 +13,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   sql:
     init:
       mode: never
@@ -33,6 +34,7 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
+  upload-preset: ${CLOUDINARY_UPLOAD_PRESET:vj3x82ms}
 
 logging:
   level:

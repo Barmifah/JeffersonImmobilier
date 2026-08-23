@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +20,7 @@ public class AuthService implements UserDetailsService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, @Lazy AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;

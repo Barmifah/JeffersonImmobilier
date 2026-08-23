@@ -8,6 +8,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PropertyRepository extends JpaRepository<Property, Long> {
+    Optional<Property> findByReference(String reference);
+
     Optional<Property> findBySlug(String slug);
 
     List<Property> findByOperationTypeAndStatus(OperationType operationType, PropertyStatus status);

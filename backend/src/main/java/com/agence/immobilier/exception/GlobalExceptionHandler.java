@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,6 +29,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception) {
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "Une erreur interne est survenue", Map.of());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException exception) {
+        return error(HttpStatus.CONFLICT, "La référence ou le slug de cette annonce existe déjà", Map.of());
     }
 
     private ResponseEntity<ApiError> error(HttpStatus status, String message, Map<String, String> fields) {

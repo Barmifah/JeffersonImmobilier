@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
 import com.agence.immobilier.security.AuthService;
 import com.agence.immobilier.security.JwtAuthenticationFilter;
 
@@ -21,11 +22,9 @@ import com.agence.immobilier.security.JwtAuthenticationFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuthService authService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthService authService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.authService = authService;
     }
 
     @Bean
@@ -42,6 +41,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers("/api/properties/admin/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/properties", "/api/properties/**").permitAll()
@@ -49,7 +49,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .userDetailsService(authService)
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

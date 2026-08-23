@@ -27,8 +27,8 @@ public class PropertyInquiry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "property_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id")
     private Property property;
 
     @Column(nullable = false, length = 120)

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
 import { usePublishedProperties } from './hooks/usePublishedProperties'
 import { uploadPropertyImage } from './services/imageService'
-import { createProperty } from './services/adminPropertyService'
-import { login } from './services/authService'
+import { createProperty, getAdminDashboard, updateInquiryStatus, updatePropertyStatus, type AdminDashboardSummary, type InquirySummary } from './services/adminPropertyService'
+import { login, restoreSession } from './services/authService'
+import { getPublishedProperty } from './services/propertyService'
+import axios from 'axios'
 import { ArrowRight, BarChart3, BedDouble, Building2, ChevronDown, Eye, Home as HomeIcon, Mail, MapPin, Menu, MessageCircle, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import './App.css'
 
@@ -76,19 +79,30 @@ function Home() {
         title: property.title,
         location: [property.district, property.city].filter(Boolean).join(', '),
         price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`,
-        image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85',
+        image: property.imageUrls?.[0] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85',
         imageUrls: property.imageUrls,
         beds: property.bedrooms ?? 0,
         area: property.area ? `${property.area} m²` : 'Surface à préciser',
       }))
     : properties
-  function handleSearch(event: FormEvent<HTMLFormElement>) { event.preventDefault(); navigate(`/${operation}`) }
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const params = new URLSearchParams()
+    const type = String(form.get('type') ?? '')
+    const location = String(form.get('location') ?? '')
+    const budget = String(form.get('budget') ?? '')
+    if (type) params.set('type', type)
+    if (location) params.set('location', location)
+    if (budget) params.set('maxPrice', budget)
+    navigate(`/${operation}${params.toString() ? `?${params}` : ''}`)
+  }
   return <main>
     <Seo title="Jefferson Immobilier | Agence immobilière au Burkina Faso" description="Découvrez les maisons, villas, appartements et terrains proposés par Jefferson Immobilier au Burkina Faso et accompagnez vos projets immobiliers." />
     <section className="hero-section">
       <header className="site-header"><Brand /><nav className={mobileMenuOpen ? 'main-nav is-open' : 'main-nav'}><NavLink to="/acheter" onClick={() => setMobileMenuOpen(false)}>Acheter</NavLink><NavLink to="/louer" onClick={() => setMobileMenuOpen(false)}>Louer</NavLink><NavLink to="/terrains" onClick={() => setMobileMenuOpen(false)}>Terrains</NavLink><NavLink to="/a-propos" onClick={() => setMobileMenuOpen(false)}>L'agence</NavLink></nav><Link to="/contact" className="header-contact">Parlons de votre projet <ArrowRight size={16} /></Link><button className="menu-toggle" aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X /> : <Menu />}</button></header>
       <div className="hero-copy"><p className="eyebrow"><Sparkles size={14} /> L'immobilier, avec une longueur d'avance</p><h1>Trouvez le bien<br /><em>qui vous ressemble.</em></h1><p className="hero-intro">Des adresses choisies avec exigence, pour habiter, investir et avancer sereinement au Burkina Faso.</p></div>
-      <form className="search-panel" onSubmit={handleSearch}><div className="search-tabs"><button type="button" className={operation === 'acheter' ? 'active' : ''} onClick={() => setOperation('acheter')}>Acheter</button><button type="button" className={operation === 'louer' ? 'active' : ''} onClick={() => setOperation('louer')}>Louer</button></div><label><span>Je recherche</span><select defaultValue=""><option value="" disabled>Un type de bien</option><option>Maison</option><option>Appartement</option><option>Terrain</option></select><ChevronDown size={15} /></label><label><span>Localisation</span><input placeholder="Ville ou quartier" /><MapPin size={15} /></label><label><span>Budget maximum</span><select defaultValue=""><option value="" disabled>Votre budget</option><option>50 000 000 FCFA</option><option>100 000 000 FCFA</option><option>200 000 000 FCFA</option></select><ChevronDown size={15} /></label><button className="search-submit" type="submit"><Search size={18} /> Rechercher</button></form>
+      <form className="search-panel" onSubmit={handleSearch}><div className="search-tabs"><button type="button" className={operation === 'acheter' ? 'active' : ''} onClick={() => setOperation('acheter')}>Acheter</button><button type="button" className={operation === 'louer' ? 'active' : ''} onClick={() => setOperation('louer')}>Louer</button></div><label><span>Je recherche</span><select name="type" defaultValue=""><option value="">Tous les types</option><option value="Maison">Maison</option><option value="Appartement">Appartement</option><option value="Terrain">Terrain</option><option value="Villa">Villa</option></select><ChevronDown size={15} /></label><label><span>Localisation</span><input name="location" placeholder="Ville ou quartier" /><MapPin size={15} /></label><label><span>Budget maximum</span><select name="budget" defaultValue=""><option value="">Tous les budgets</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select><ChevronDown size={15} /></label><button className="search-submit" type="submit"><Search size={18} /> Rechercher</button></form>
       <div className="hero-note"><span>01</span><span className="note-line" /><span>Des lieux qui ont une histoire<br />et encore beaucoup à écrire.</span></div>
     </section>
     <section className="content-section featured-section"><div className="section-heading"><div><p className="eyebrow dark">Sélection Jefferson</p><h2>Des biens qui<br /><em>ne ressemblent pas aux autres.</em></h2></div><Link to="/acheter" className="text-link">Voir toutes les annonces <ArrowRight size={16} /></Link></div><div className="property-grid">{visibleProperties.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />)}</div></section>
@@ -118,28 +132,47 @@ Je souhaite recevoir plus d'informations et convenir d'une visite.`)
 
 function PropertyDetail({ slug }: { slug: string }) {
   const property = properties.find((item) => item.id === slug)
-  if (!property) return <PlaceholderPage />
-  const apiImages = 'imageUrls' in property ? (property as { imageUrls?: string[] }).imageUrls ?? [] : []
-  const images = [property.image, ...apiImages]
+  const apiProperty = usePublishedProperty(slug)
+  if (!property && apiProperty.isLoading) return <main className="placeholder-page"><Brand /><p>Chargement de l'annonce...</p></main>
+  if (!property && (!apiProperty.data || apiProperty.isError)) return <PlaceholderPage />
+  const detail = apiProperty.data
+  const displayProperty = detail ? {
+    id: detail.slug,
+    reference: detail.reference,
+    type: detail.propertyType,
+    title: detail.title,
+    location: [detail.district, detail.city].filter(Boolean).join(', '),
+    price: `${detail.price.toLocaleString('fr-FR')} ${detail.currency}`,
+    image: detail.imageUrls?.[0] ?? properties[0].image,
+    beds: detail.bedrooms ?? 0,
+    area: detail.area ? `${detail.area} m²` : 'Surface à préciser',
+    imageUrls: detail.imageUrls,
+  } : property!
+  const images = displayProperty.imageUrls?.length ? displayProperty.imageUrls : [displayProperty.image]
   const whatsappText = encodeURIComponent(`Bonjour Jefferson Immobilier,
-Je suis intéressé par le bien ${property.title}, référence ${property.reference}.
-Localisation : ${property.location}
-Prix : ${property.price}
+Je suis intéressé par le bien ${displayProperty.title}, référence ${displayProperty.reference}.
+Localisation : ${displayProperty.location}
+Prix : ${displayProperty.price}
 Je souhaite recevoir plus d'informations et convenir d'une visite.
 Photo : ${images[0]}`)
-  return <main className="property-detail-page"><header className="detail-header"><Brand /><Link to="/acheter" className="text-link">Retour aux annonces <ArrowRight size={15} /></Link></header><div className="detail-gallery">{images.slice(0, 4).map((image, index) => <img key={image} className={index === 0 ? 'detail-cover' : ''} src={image} alt={`${property.title}, photo ${index + 1}`} />)}</div><section className="detail-content"><div className="detail-main"><p className="eyebrow dark">{property.type} · {property.reference}</p><h1>{property.title}</h1><p className="detail-location"><MapPin size={15} /> {property.location}</p><strong className="detail-price">{property.price}</strong><div className="detail-facts"><span>{property.area}</span>{property.beds > 0 && <span><BedDouble size={16} /> {property.beds} chambres</span>}<span><Building2 size={16} /> Disponible</span></div><h2>À propos de ce bien</h2><p className="detail-description">Une adresse pensée pour celles et ceux qui recherchent un cadre singulier, des volumes généreux et une qualité de vie durable. Contactez notre équipe pour recevoir toutes les informations et organiser une visite.</p></div><aside className="contact-panel"><p className="eyebrow dark">Ce bien vous intéresse ?</p><h2>Parlons-en.</h2><p>Notre équipe vous répond directement sur WhatsApp.</p><a className="detail-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={20} /> Écrire sur WhatsApp</a><a className="detail-email" href={`mailto:${agencyEmail}`}>ou écrire à {agencyEmail}</a></aside></section><Seo title={`${property.title} | Jefferson Immobilier`} description={`${property.type} à ${property.location}. ${property.price}. Découvrez cette annonce Jefferson Immobilier et contactez notre équipe.`} path={`/biens/${property.id}`} /></main>
+  return <main className="property-detail-page"><header className="detail-header"><Brand /><Link to="/acheter" className="text-link">Retour aux annonces <ArrowRight size={15} /></Link></header><div className="detail-gallery">{images.slice(0, 4).map((image, index) => <img key={image} className={index === 0 ? 'detail-cover' : ''} src={image} alt={`${displayProperty.title}, photo ${index + 1}`} />)}</div><section className="detail-content"><div className="detail-main"><p className="eyebrow dark">{displayProperty.type} · {displayProperty.reference}</p><h1>{displayProperty.title}</h1><p className="detail-location"><MapPin size={15} /> {displayProperty.location}</p><strong className="detail-price">{displayProperty.price}</strong><div className="detail-facts"><span>{displayProperty.area}</span>{displayProperty.beds > 0 && <span><BedDouble size={16} /> {displayProperty.beds} chambres</span>}<span><Building2 size={16} /> Disponible</span></div><h2>À propos de ce bien</h2><p className="detail-description">{detail?.description ?? 'Une adresse pensée pour celles et ceux qui recherchent un cadre singulier et une qualité de vie durable. Contactez notre équipe pour recevoir toutes les informations et organiser une visite.'}</p></div><aside className="contact-panel"><p className="eyebrow dark">Ce bien vous intéresse ?</p><h2>Parlons-en.</h2><p>Notre équipe vous répond directement sur WhatsApp.</p><a className="detail-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={20} /> Écrire sur WhatsApp</a><a className="detail-email" href={`mailto:${agencyEmail}`}>ou écrire à {agencyEmail}</a></aside></section><Seo title={`${displayProperty.title} | Jefferson Immobilier`} description={`${displayProperty.type} à ${displayProperty.location}. ${displayProperty.price}. Découvrez cette annonce Jefferson Immobilier et contactez notre équipe.`} path={`/biens/${displayProperty.id}`} /></main>
+}
+
+function usePublishedProperty(slug: string) {
+  return useQuery({ queryKey: ['property', 'published', slug], queryFn: () => getPublishedProperty(slug), retry: 1, staleTime: 60_000 })
 }
 
 function PropertyCatalog({ mode }: { mode: 'acheter' | 'louer' | 'terrains' }) {
-  const [search, setSearch] = useState('')
-  const [type, setType] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
+  const params = new URLSearchParams(window.location.search)
+  const [search, setSearch] = useState(params.get('location') ?? '')
+  const [type, setType] = useState(params.get('type') ?? '')
+  const [maxPrice, setMaxPrice] = useState(params.get('maxPrice') ?? '')
   const operation = mode === 'louer' ? 'LOCATION' : 'VENTE'
   const query = usePublishedProperties(operation)
   const title = mode === 'acheter' ? 'Biens à vendre' : mode === 'louer' ? 'Biens à louer' : 'Terrains à bâtir'
   const description = mode === 'acheter' ? 'Maisons, villas et appartements à vendre sélectionnés par Jefferson Immobilier.' : mode === 'louer' ? 'Maisons, villas et appartements à louer au Burkina Faso.' : 'Terrains à vendre pour vos projets immobiliers au Burkina Faso.'
   const apiCatalog: PropertyCardData[] = (query.data ?? []).map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, title: property.title, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : 'Surface à préciser', imageUrls: property.imageUrls }))
-  const sourceCatalog = apiCatalog.length ? apiCatalog : properties
+  const sourceCatalog = apiCatalog
   const catalog = mode === 'terrains' ? sourceCatalog.filter((property) => property.type.includes('TERRAIN') || property.type.includes('Terrain')) : sourceCatalog.filter((property) => mode === 'louer' ? property.price.toLowerCase().includes('mois') : !property.price.toLowerCase().includes('mois'))
   const filteredCatalog = catalog.filter((property) => {
     const matchesSearch = `${property.title} ${property.location}`.toLowerCase().includes(search.toLowerCase())
@@ -147,18 +180,22 @@ function PropertyCatalog({ mode }: { mode: 'acheter' | 'louer' | 'terrains' }) {
     const numericPrice = Number(property.price.replace(/[^0-9]/g, ''))
     return matchesSearch && matchesType && (!maxPrice || numericPrice <= Number(maxPrice))
   })
-  return <main className="catalog-page"><header className="catalog-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="catalog-intro"><p className="eyebrow dark">Catalogue Jefferson</p><h1>{title}<br /><em>pour vos projets.</em></h1><p>{description}</p></section><div className="catalog-toolbar"><span>{query.data?.length ?? filteredCatalog.length} annonce(s) disponible(s)</span><div className="catalog-filters"><label><Search size={14} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ville ou quartier" /></label><select value={type} onChange={(event) => setType(event.target.value)}><option value="">Tous les types</option><option value="maison">Maison</option><option value="villa">Villa</option><option value="appartement">Appartement</option><option value="terrain">Terrain</option></select><select value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)}><option value="">Budget maximum</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select></div></div><section className="catalog-grid">{filteredCatalog.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />)}</section><Seo title={`${title} | Jefferson Immobilier`} description={description} path={`/${mode}`} /></main>
+  return <main className="catalog-page"><header className="catalog-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="catalog-intro"><p className="eyebrow dark">Catalogue Jefferson</p><h1>{title}<br /><em>pour vos projets.</em></h1><p>{description}</p></section><div className="catalog-toolbar"><span>{filteredCatalog.length} annonce(s) disponible(s)</span><div className="catalog-filters"><label><Search size={14} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ville ou quartier" /></label><select value={type} onChange={(event) => setType(event.target.value)}><option value="">Tous les types</option><option value="maison">Maison</option><option value="villa">Villa</option><option value="appartement">Appartement</option><option value="terrain">Terrain</option></select><select value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)}><option value="">Budget maximum</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select></div></div><section className="catalog-grid">{filteredCatalog.length ? filteredCatalog.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">Aucune annonce réelle ne correspond à votre recherche.</p>}</section><Seo title={`${title} | Jefferson Immobilier`} description={description} path={`/${mode}`} /></main>
 }
 
 function CityPage({ city }: { city: string }) {
   const cityName = city === 'bobo-dioulasso' ? 'Bobo-Dioulasso' : 'Ouagadougou'
-  const cityProperties = properties.filter((property) => property.location.toLowerCase().includes(cityName.toLowerCase()))
-  return <main className="editorial-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="editorial-hero city-hero"><p className="eyebrow dark">Explorer par destination</p><h1>Immobilier à<br /><em>{cityName}.</em></h1><p>Des adresses choisies dans les quartiers qui font le caractère de {cityName}. Explorez les biens Jefferson disponibles.</p></section><section className="editorial-list"><div className="section-heading"><div><p className="eyebrow dark">La sélection locale</p><h2>Nos adresses<br /><em>à {cityName}.</em></h2></div><Link to="/acheter" className="text-link">Voir le catalogue <ArrowRight size={15} /></Link></div><div className="catalog-grid">{cityProperties.length ? cityProperties.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">De nouvelles adresses arrivent bientôt dans cette ville.</p>}</div></section><Seo title={`Immobilier à ${cityName} | Jefferson Immobilier`} description={`Découvrez les biens immobiliers proposés par Jefferson Immobilier à ${cityName}. Maisons, appartements, villas et terrains.`} path={`/ville/${city}`} /></main>
+  const sales = usePublishedProperties('VENTE')
+  const rentals = usePublishedProperties('LOCATION')
+  const cityProperties: PropertyCardData[] = [...(sales.data ?? []), ...(rentals.data ?? [])]
+    .filter((property) => `${property.city} ${property.district ?? ''}`.toLowerCase().includes(cityName.toLowerCase()))
+    .map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, title: property.title, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : 'Surface à préciser', imageUrls: property.imageUrls }))
+  return <main className="editorial-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="editorial-hero city-hero"><p className="eyebrow dark">Explorer par destination</p><h1>Immobilier à<br /><em>{cityName}.</em></h1><p>Les annonces disponibles à {cityName}, chargées depuis le catalogue Jefferson.</p></section><section className="editorial-list"><div className="section-heading"><div><p className="eyebrow dark">La sélection locale</p><h2>Nos adresses<br /><em>à {cityName}.</em></h2></div><Link to="/acheter" className="text-link">Voir le catalogue <ArrowRight size={15} /></Link></div><div className="catalog-grid">{cityProperties.length ? cityProperties.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">Aucune annonce disponible dans cette ville.</p>}</div></section><Seo title={`Immobilier à ${cityName} | Jefferson Immobilier`} description={`Découvrez les biens immobiliers proposés par Jefferson Immobilier à ${cityName}. Maisons, appartements, villas et terrains.`} path={`/ville/${city}`} /></main>
 }
 
 function AboutPage() { return <main className="editorial-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="editorial-hero about-hero"><p className="eyebrow dark">L'agence</p><h1>Nous créons des liens<br /><em>avec les bons lieux.</em></h1><p>Jefferson Immobilier accompagne celles et ceux qui veulent habiter, investir et construire un avenir au Burkina Faso avec exigence et sérénité.</p></section><section className="about-grid"><div><p className="eyebrow dark">Notre conviction</p><h2>Un bien n'est jamais<br /><em>juste une adresse.</em></h2></div><p>Chaque projet commence par une écoute attentive. Notre rôle est de comprendre une ambition, de repérer les bons volumes et de rendre chaque étape plus claire. De la première visite à la remise des clés, notre équipe reste présente et disponible.</p></section><section className="values-grid"><div><span>01</span><h3>Le regard</h3><p>Nous sélectionnons des lieux avec une vraie personnalité.</p></div><div><span>02</span><h3>L'écoute</h3><p>Nous construisons chaque conseil autour de votre projet.</p></div><div><span>03</span><h3>La confiance</h3><p>Des informations claires, des échanges directs et un suivi humain.</p></div></section><ContactCta /><Seo title="À propos de Jefferson Immobilier" description="Découvrez l'agence Jefferson Immobilier et sa manière d'accompagner les projets immobiliers au Burkina Faso." path="/a-propos" /></main> }
 
-function ContactPage() { const [sent, setSent] = useState(false); function handleContact(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const message = encodeURIComponent(`Bonjour Jefferson Immobilier,\n\nJe souhaite parler de mon projet immobilier.\nNom : ${form.get('name')}\nE-mail : ${form.get('email')}\nProjet : ${form.get('project')}\nMessage : ${form.get('message')}`); window.location.href = `https://wa.me/${whatsappNumber}?text=${message}`; setSent(true) } return <main className="contact-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="contact-layout"><div><p className="eyebrow dark">Parlons de votre projet</p><h1>Un projet en tête ?<br /><em>Commençons par en parler.</em></h1><p>Que vous cherchiez à acheter, louer, vendre ou investir, notre équipe vous répond directement.</p><div className="contact-details"><a href={`mailto:${agencyEmail}`}><Mail size={17} /> {agencyEmail}</a><a href={`https://wa.me/${whatsappNumber}`}><MessageCircle size={17} /> +226 55 77 32 41</a></div></div><form className="project-form" onSubmit={handleContact}><label>Votre nom<input name="name" required placeholder="Nom complet" /></label><label>Votre e-mail<input name="email" type="email" required placeholder="vous@exemple.com" /></label><label>Votre projet<select name="project" defaultValue="Acheter"><option>Acheter</option><option>Louer</option><option>Vendre un bien</option><option>Investir</option></select></label><label>Votre message<textarea name="message" required rows={5} placeholder="Dites-nous quelques mots sur votre projet" /></label><button className="button-dark" type="submit">Envoyer sur WhatsApp <MessageCircle size={17} /></button>{sent && <small className="upload-status">Votre message est prêt dans WhatsApp.</small>}</form></section><Seo title="Contact | Jefferson Immobilier" description="Contactez Jefferson Immobilier par WhatsApp ou e-mail pour votre projet immobilier." path="/contact" /></main> }
+function LegacyContactPage() { const [sent, setSent] = useState(false); function handleContact(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const message = encodeURIComponent(`Bonjour Jefferson Immobilier,\n\nJe souhaite parler de mon projet immobilier.\nNom : ${form.get('name')}\nE-mail : ${form.get('email')}\nProjet : ${form.get('project')}\nMessage : ${form.get('message')}`); window.location.href = `https://wa.me/${whatsappNumber}?text=${message}`; setSent(true) } return <main className="contact-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="contact-layout"><div><p className="eyebrow dark">Parlons de votre projet</p><h1>Un projet en tête ?<br /><em>Commençons par en parler.</em></h1><p>Que vous cherchiez à acheter, louer, vendre ou investir, notre équipe vous répond directement.</p><div className="contact-details"><a href={`mailto:${agencyEmail}`}><Mail size={17} /> {agencyEmail}</a><a href={`https://wa.me/${whatsappNumber}`}><MessageCircle size={17} /> +226 55 77 32 41</a></div></div><form className="project-form" onSubmit={handleContact}><label>Votre nom<input name="name" required placeholder="Nom complet" /></label><label>Votre e-mail<input name="email" type="email" required placeholder="vous@exemple.com" /></label><label>Votre projet<select name="project" defaultValue="Acheter"><option>Acheter</option><option>Louer</option><option>Vendre un bien</option><option>Investir</option></select></label><label>Votre message<textarea name="message" required rows={5} placeholder="Dites-nous quelques mots sur votre projet" /></label><button className="button-dark" type="submit">Envoyer sur WhatsApp <MessageCircle size={17} /></button>{sent && <small className="upload-status">Votre message est prêt dans WhatsApp.</small>}</form></section><Seo title="Contact | Jefferson Immobilier" description="Contactez Jefferson Immobilier par WhatsApp ou e-mail pour votre projet immobilier." path="/contact" /></main> }
 
 function ContactCta() { return <section className="contact-cta"><div><p className="eyebrow">Un projet immobilier ?</p><h2>Parlons de<br /><em>la suite.</em></h2></div><Link to="/contact" className="circle-link" aria-label="Contacter l'agence"><ArrowRight /></Link></section> }
 
@@ -166,10 +203,23 @@ function AdminListingForm() {
   const [uploadStatus, setUploadStatus] = useState('')
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [saveStatus, setSaveStatus] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const navigate = useNavigate()
   useEffect(() => {
     if (!localStorage.getItem('jefferson_access_token')) navigate('/admin/login', { replace: true })
   }, [navigate])
+  useEffect(() => {
+    const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('.listing-form input[type="url"][readonly]'))
+    inputs.forEach((input) => {
+      if (input.nextElementSibling?.classList.contains('remove-uploaded-image')) return
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'remove-uploaded-image'
+      button.textContent = 'Supprimer cette photo'
+      button.onclick = () => setUploadedImages((current) => current.filter((url) => url !== input.value))
+      input.insertAdjacentElement('afterend', button)
+    })
+  }, [uploadedImages])
   async function handleImages(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? [])
     if (!files.length) return
@@ -179,12 +229,14 @@ function AdminListingForm() {
       setUploadedImages((current) => [...current, ...urls])
       setUploadStatus(`${urls.length} photo(s) envoyée(s)`) 
     } catch {
-      setUploadStatus('Connexion requise pour envoyer les photos')
+      setUploadStatus('Impossible d’envoyer la photo. Vérifiez la configuration Cloudinary.')
     }
   }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (isSaving) return
     const form = new FormData(event.currentTarget)
+    setIsSaving(true)
     setSaveStatus('Enregistrement...')
     try {
       await createProperty({
@@ -206,8 +258,14 @@ function AdminListingForm() {
       setSaveStatus('Annonce enregistrée avec succès')
       event.currentTarget.reset()
       setUploadedImages([])
-    } catch {
-      setSaveStatus('Connexion administrateur requise pour enregistrer')
+      navigate('/admin')
+    } catch (error) {
+      const message = axios.isAxiosError(error) && typeof error.response?.data?.message === 'string'
+        ? error.response.data.message
+        : 'Impossible d’enregistrer l’annonce. Vérifiez les champs et l’API.'
+      setSaveStatus(message)
+    } finally {
+      setIsSaving(false)
     }
   }
   return <main className="admin-page"><Brand /><div className="admin-kicker"><SlidersHorizontal size={18} /> Espace agence privé</div><h1>Publier une<br /><em>nouvelle annonce.</em></h1><p>Réservé à l'équipe Jefferson Immobilier. Les visiteurs peuvent uniquement consulter les publications.</p><form className="listing-form" onSubmit={handleSubmit}><label>Titre de l'annonce<input name="title" required placeholder="Ex. Villa contemporaine avec piscine" /></label><div className="form-row"><label>Type<select name="propertyType" defaultValue="MAISON"><option value="MAISON">Maison</option><option value="VILLA">Villa</option><option value="APPARTEMENT">Appartement</option><option value="TERRAIN">Terrain</option></select></label><label>Opération<select name="operationType" defaultValue="Vente"><option>Vente</option><option>Location</option></select></label></div><div className="form-row"><label>Prix<input name="price" type="number" required placeholder="Ex. 185000000" /></label><label>Référence<input name="reference" required placeholder="Ex. JEF-VIL-004" /></label></div><div className="form-row"><label>Ville<input name="city" required placeholder="Ouagadougou" /></label><label>Quartier<input name="district" placeholder="Ouaga 2000" /></label></div><div className="form-row"><label>Superficie<input name="area" type="number" min="0" placeholder="Ex. 420" /></label><label>Chambres<input name="bedrooms" type="number" min="0" placeholder="Ex. 4" /></label></div><label>Adresse complète<input name="address" placeholder="Adresse du bien" /></label><label>Description détaillée<textarea name="description" required placeholder="Présentez les caractéristiques du bien, les équipements et les conditions" rows={6} /></label><label>Photos du bien<input type="file" accept="image/*" multiple onChange={handleImages} />{uploadStatus && <small className="upload-status">{uploadStatus}</small>}{uploadedImages.map((url) => <input key={url} type="url" value={url} readOnly />)}</label>{saveStatus && <small className="upload-status">{saveStatus}</small>}<button className="button-dark" type="submit">Enregistrer l'annonce <ArrowRight size={17} /></button></form><Link to="/" className="back-link">Retour au site public</Link></main>
@@ -222,7 +280,7 @@ function AdminLogin() {
     setError('')
     try {
       await login(String(form.get('email')), String(form.get('password')))
-      navigate('/admin/annonces/nouvelle')
+      navigate('/admin')
     } catch {
       setError('Identifiants incorrects ou API indisponible')
     }
@@ -230,7 +288,86 @@ function AdminLogin() {
   return <main className="admin-page"><Brand /><div className="admin-kicker"><SlidersHorizontal size={18} /> Accès équipe agence</div><h1>Connexion<br /><em>administrateur.</em></h1><p>La consultation des annonces reste libre. Cette connexion est uniquement réservée au personnel de Jefferson Immobilier.</p><form className="listing-form" onSubmit={handleLogin}><label>E-mail<input name="email" type="email" required placeholder="admin@jefferson-immobilier.local" /></label><label>Mot de passe<input name="password" type="password" required placeholder="Votre mot de passe" /></label>{error && <small className="form-error">{error}</small>}<button className="button-dark" type="submit">Se connecter <ArrowRight size={17} /></button></form><Link to="/" className="back-link">Retour au site public</Link></main>
 }
 
+function LiveAdminDashboard() {
+  const navigate = useNavigate()
+  const [dashboard, setDashboard] = useState<AdminDashboardSummary | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!localStorage.getItem('jefferson_access_token')) {
+      navigate('/admin/login', { replace: true })
+      return
+    }
+    getAdminDashboard().then(setDashboard).catch(() => setError('Impossible de charger les données du dashboard'))
+  }, [navigate])
+  useEffect(() => {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.dashboard-sidebar nav a'))
+    links.forEach((link) => {
+      const label = link.textContent?.trim()
+      const path = label === 'Mes biens' ? '/admin/biens' : label === 'Vues & prospects' ? '/admin/prospects' : label === 'Messages' ? '/admin/messages' : null
+      if (path) link.href = path
+    })
+  }, [dashboard])
+
+  if (error) return <main className="dashboard-page"><Brand /><section className="dashboard-content"><p className="form-error">{error}</p></section></main>
+  if (!dashboard) return <main className="dashboard-page"><Brand /><section className="dashboard-content"><p>Chargement du dashboard...</p></section></main>
+
+  const formatPrice = (price: number, currency: string) => `${price.toLocaleString('fr-FR')} ${currency}`
+  return <main className="dashboard-page"><aside className="dashboard-sidebar"><Brand /><p className="dashboard-label">Espace agence</p><nav><a className="selected"><BarChart3 size={17} /> Vue d'ensemble</a><Link to="/admin/annonces/nouvelle"><Plus size={17} /> Nouvelle annonce</Link><a><HomeIcon size={17} /> Mes biens</a><a><Eye size={17} /> Vues & prospects</a><a><Mail size={17} /> Messages</a></nav><Link to="/" className="dashboard-back">Voir le site public <ArrowRight size={15} /></Link></aside><section className="dashboard-content"><header className="dashboard-header"><div><p className="eyebrow dark">Espace agence</p><h1>Bonjour, <em>Jefferson.</em></h1></div><Link to="/admin/annonces/nouvelle" className="button-dark"><Plus size={17} /> Nouvelle annonce</Link></header><div className="stats-grid"><div className="stat-card"><span>Biens publiés</span><strong>{dashboard.publishedProperties}</strong><small>Catalogue actif</small></div><div className="stat-card"><span>Biens disponibles</span><strong>{dashboard.availableProperties}</strong><small>À la vente ou location</small></div><div className="stat-card"><span>Demandes reçues</span><strong>{dashboard.totalInquiries}</strong><small>{dashboard.newInquiries} nouvelle(s)</small></div><div className="stat-card"><span>Prospects à traiter</span><strong>{dashboard.newInquiries}</strong><small>Demandes non contactées</small></div></div><div className="dashboard-columns"><section className="dashboard-panel"><div className="panel-heading"><div><p className="eyebrow dark">Catalogue</p><h2>Annonces récentes</h2></div></div>{dashboard.properties.slice(0, 8).map((property) => <div className="listing-row" key={property.id}><img src={property.imageUrls[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80'} alt="" /><div><strong>{property.title}</strong><span>{property.reference} · {[property.district, property.city].filter(Boolean).join(', ')}</span></div><span className="status-pill">{property.status}</span><span className="row-price">{formatPrice(property.price, property.currency)}</span></div>)}</section><section className="dashboard-panel activity-panel"><div className="panel-heading"><div><p className="eyebrow dark">Prospects</p><h2>Dernières demandes</h2></div></div>{dashboard.inquiries.slice(0, 8).map((inquiry) => <div className="activity-row" key={inquiry.id}><span className="activity-dot" /><div><strong>{inquiry.fullName}</strong><span>{inquiry.propertyReference} · {inquiry.phone}</span></div><small>{inquiry.status}</small></div>)}{dashboard.inquiries.length === 0 && <p>Aucune demande enregistrée.</p>}</section></div></section></main>
+}
+
+function AdminPublishPanel() {
+  const [properties, setProperties] = useState<AdminDashboardSummary['properties']>([])
+  const [selectedId, setSelectedId] = useState('')
+  const [status, setStatus] = useState('')
+
+  useEffect(() => {
+    getAdminDashboard().then((data) => setProperties(data.properties)).catch(() => setStatus('Impossible de charger les annonces'))
+  }, [])
+
+  async function publish() {
+    if (!selectedId) return
+    try {
+      await updatePropertyStatus(Number(selectedId), 'AVAILABLE')
+      setProperties((current) => current.map((property) => property.id === Number(selectedId) ? { ...property, status: 'AVAILABLE' } : property))
+      setStatus('Annonce publiée avec succès')
+    } catch {
+      setStatus("Impossible de publier l'annonce")
+    }
+  }
+
+  return <section className="publish-panel"><h2>Publier une annonce</h2><select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}><option value="">Sélectionner une annonce</option>{properties.filter((property) => property.status === 'DRAFT').map((property) => <option key={property.id} value={property.id}>{property.reference} - {property.title}</option>)}</select><button className="button-dark" type="button" onClick={publish} disabled={!selectedId}>Publier</button>{status && <small className="upload-status">{status}</small>}</section>
+}
+
+function AdminPropertiesPage() {
+  const [data, setData] = useState<AdminDashboardSummary | null>(null)
+  const [status, setStatus] = useState('')
+  useEffect(() => { getAdminDashboard().then(setData).catch(() => setStatus('Impossible de charger les annonces')) }, [])
+  async function changeStatus(id: number, nextStatus: string) {
+    try {
+      await updatePropertyStatus(id, nextStatus)
+      setData((current) => current ? { ...current, properties: current.properties.map((property) => property.id === id ? { ...property, status: nextStatus } : property) } : current)
+      setStatus('Statut mis à jour')
+    } catch { setStatus('Impossible de modifier le statut') }
+  }
+  return <main className="admin-section-page"><header><Brand /><Link to="/admin">Dashboard <ArrowRight size={15} /></Link></header><div className="admin-section-inner"><div className="section-heading"><div><p className="eyebrow dark">Catalogue réel</p><h1>Mes biens</h1></div><Link to="/admin/annonces/nouvelle" className="button-dark"><Plus size={17} /> Nouvelle annonce</Link></div>{status && <p className="upload-status">{status}</p>}{data?.properties.map((property) => <article className="admin-property-row" key={property.id}><img src={property.imageUrls[0] || properties[0].image} alt="" /><div><strong>{property.title}</strong><span>{property.reference} · {[property.district, property.city].filter(Boolean).join(', ')}</span><small>{property.price.toLocaleString('fr-FR')} {property.currency}</small></div><select value={property.status} onChange={(event) => changeStatus(property.id, event.target.value)}><option value="DRAFT">Brouillon</option><option value="AVAILABLE">Disponible</option><option value="RESERVED">Réservé</option><option value="SOLD">Vendu</option><option value="RENTED">Loué</option><option value="ARCHIVED">Archivé</option></select></article>)}</div></main>
+}
+
+function AdminInquiriesPage({ title = 'Prospects et messages' }: { title?: string }) {
+  const [inquiries, setInquiries] = useState<InquirySummary[]>([])
+  const [status, setStatus] = useState('')
+  useEffect(() => { getAdminDashboard().then((data) => setInquiries(data.inquiries)).catch(() => setStatus('Impossible de charger les demandes')) }, [])
+  async function changeStatus(id: number, nextStatus: string) {
+    try {
+      const updated = await updateInquiryStatus(id, nextStatus)
+      setInquiries((current) => current.map((inquiry) => inquiry.id === id ? updated : inquiry))
+    } catch { setStatus('Impossible de modifier le statut de la demande') }
+  }
+  return <main className="admin-section-page"><header><Brand /><Link to="/admin">Dashboard <ArrowRight size={15} /></Link></header><div className="admin-section-inner"><p className="eyebrow dark">Demandes enregistrées</p><h1>{title}</h1>{status && <p className="form-error">{status}</p>}{inquiries.map((inquiry) => <article className="inquiry-row" key={inquiry.id}><div><strong>{inquiry.fullName}</strong><span>{inquiry.email} · {inquiry.phone}</span><small>{inquiry.propertyReference ? `${inquiry.propertyReference} · ` : ''}{inquiry.message}</small></div><select value={inquiry.status} onChange={(event) => changeStatus(inquiry.id, event.target.value)}><option value="NEW">Nouveau</option><option value="CONTACTED">Contacté</option><option value="VISIT_SCHEDULED">Visite programmée</option><option value="CLOSED">Clos</option></select></article>)}{inquiries.length === 0 && <p>Aucune demande enregistrée.</p>}</div></main>
+}
+
 function AdminDashboard() {
+  return <><LiveAdminDashboard /><AdminPublishPanel /></>
   const navigate = useNavigate()
   useEffect(() => {
     if (!localStorage.getItem('jefferson_access_token')) navigate('/admin/login', { replace: true })
@@ -240,7 +377,13 @@ function AdminDashboard() {
 
 function PlaceholderPage() { return <main className="placeholder-page"><Brand /><SlidersHorizontal size={34} /><h1>Votre prochaine adresse<br /><em>se prépare ici.</em></h1><p>Cette page sera connectée au catalogue immobilier et à la recherche avancée.</p><Link to="/" className="button-dark">Retour à l'accueil <ArrowRight size={17} /></Link></main> }
 
-function App() { return <Routes><Route path="/" element={<Home />} /><Route path="/acheter" element={<PropertyCatalog mode="acheter" />} /><Route path="/louer" element={<PropertyCatalog mode="louer" />} /><Route path="/terrains" element={<PropertyCatalog mode="terrains" />} /><Route path="/ville/:city" element={<CityRoute />} /><Route path="/a-propos" element={<AboutPage />} /><Route path="/contact" element={<ContactPage />} /><Route path="/biens/:slug" element={<PropertyRoute />} /><Route path="/admin" element={<AdminDashboard />} /><Route path="/admin/login" element={<AdminLogin />} /><Route path="/admin/annonces/nouvelle" element={<AdminListingForm />} /><Route path="*" element={<PlaceholderPage />} /></Routes> }
+function App() {
+  useEffect(() => {
+    restoreSession()
+  }, [])
+
+  return <Routes><Route path="/" element={<Home />} /><Route path="/acheter" element={<PropertyCatalog mode="acheter" />} /><Route path="/louer" element={<PropertyCatalog mode="louer" />} /><Route path="/terrains" element={<PropertyCatalog mode="terrains" />} /><Route path="/ville/:city" element={<CityRoute />} /><Route path="/a-propos" element={<AboutPage />} /><Route path="/contact" element={<LegacyContactPage />} /><Route path="/biens/:slug" element={<PropertyRoute />} /><Route path="/admin" element={<AdminDashboard />} /><Route path="/admin/biens" element={<AdminPropertiesPage />} /><Route path="/admin/prospects" element={<AdminInquiriesPage />} /><Route path="/admin/messages" element={<AdminInquiriesPage title="Messages" />} /><Route path="/admin/login" element={<AdminLogin />} /><Route path="/admin/annonces/nouvelle" element={<AdminListingForm />} /><Route path="*" element={<PlaceholderPage />} /></Routes>
+}
 
 function PropertyRoute() {
   const slug = window.location.pathname.split('/').pop() ?? ''
