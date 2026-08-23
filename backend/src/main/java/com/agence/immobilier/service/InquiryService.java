@@ -1,7 +1,6 @@
 package com.agence.immobilier.service;
 
 import com.agence.immobilier.dto.request.InquiryRequest;
-import com.agence.immobilier.dto.response.InquiryResponse;
 import com.agence.immobilier.entity.PropertyInquiry;
 import com.agence.immobilier.repository.PropertyInquiryRepository;
 import com.agence.immobilier.repository.PropertyRepository;
@@ -9,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.List;
 
 @Service
 public class InquiryService {
@@ -33,14 +31,5 @@ public class InquiryService {
         inquiry.setPhone(request.phone());
         inquiry.setMessage(request.message());
         inquiryRepository.save(inquiry);
-    }
-
-    @Transactional(readOnly = true)
-    public List<InquiryResponse> findAll() {
-        return inquiryRepository.findAll().stream()
-                .map(inquiry -> new InquiryResponse(inquiry.getId(), inquiry.getProperty().getId(),
-                        inquiry.getProperty().getTitle(), inquiry.getFullName(), inquiry.getEmail(),
-                        inquiry.getPhone(), inquiry.getMessage(), inquiry.getStatus(), inquiry.getCreatedAt()))
-                .toList();
     }
 }
