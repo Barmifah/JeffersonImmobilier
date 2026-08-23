@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: immobilier
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/jefferson_immobilier}
+    username: ${DATABASE_USERNAME:jefferson}
+    password: ${DATABASE_PASSWORD:jefferson_dev}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: never
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+server:
+  port: ${SERVER_PORT:8080}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:VGhlSmVmZmVyc29uSW1tb2JpbGllcl9kZXZlbG9wbWVudF9zZWNyZXRfa2V5XzMyX2J5dGVz}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+
+logging:
+  level:
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG_LEVEL:warn}
