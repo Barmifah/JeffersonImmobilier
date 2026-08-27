@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/inquiries")
@@ -30,6 +31,7 @@ public class InquiryController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
     public com.agence.immobilier.dto.response.InquiryResponse updateStatus(@PathVariable Long id,
                                                                             @RequestParam InquiryStatus status) {
         return inquiryService.updateStatus(id, status);

@@ -26,7 +26,8 @@ public class ImageStorageService {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Le fichier image est vide");
         }
-        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Le fichier doit être une image");
         }
         if (cloudName.isBlank()) {

@@ -15,11 +15,14 @@ import org.springframework.stereotype.Service;
 public class JwtService {
     private final Key signingKey;
     private final long expirationMs;
+    private final long refreshExpirationMs;
 
     public JwtService(@Value("${security.jwt.secret}") String secret,
-                      @Value("${security.jwt.expiration-ms}") long expirationMs) {
+                      @Value("${security.jwt.expiration-ms}") long expirationMs,
+                      @Value("${security.jwt.refresh-expiration-ms:604800000}") long refreshExpirationMs) {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
         this.expirationMs = expirationMs;
+        this.refreshExpirationMs = refreshExpirationMs;
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -32,13 +35,27 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateRefreshToken(UserDetails userDetails) {
+        Instant now = Instant.now();
+        return Jwts.builder().subject(userDetails.getUsername()).claim("type", "refresh")
+                .issuedAt(Date.from(now)).expiration(new Date(now.toEpochMilli() + refreshExpirationMs))
+                .signWith(signingKey).compact();
+    }
+
     public String extractUsername(String token) {
         return parse(token).getSubject();
     }
 
     public boolean isValid(String token, UserDetails userDetails) {
         Claims claims = parse(token);
-        return claims.getSubject().equals(userDetails.getUsername()) && claims.getExpiration().after(new Date());
+        return !"refresh".equals(claims.get("type", String.class))
+                && claims.getSubject().equals(userDetails.getUsername()) && claims.getExpiration().after(new Date());
+    }
+
+    public boolean isRefreshToken(String token, UserDetails userDetails) {
+        Claims claims = parse(token);
+        return "refresh".equals(claims.get("type", String.class))
+                && claims.getSubject().equals(userDetails.getUsername()) && claims.getExpiration().after(new Date());
     }
 
     public long getExpirationMs() {

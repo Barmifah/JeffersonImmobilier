@@ -29,12 +29,16 @@ security:
   jwt:
     secret: ${JWT_SECRET:VGhlSmVmZmVyc29uSW1tb2JpbGllcl9kZXZlbG9wbWVudF9zZWNyZXRfa2V5XzMyX2J5dGVz}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
   upload-preset: ${CLOUDINARY_UPLOAD_PRESET:vj3x82ms}
+
+seo:
+  site-url: ${SEO_SITE_URL:https://jefferson-immobilier.example}
 
 logging:
   level:

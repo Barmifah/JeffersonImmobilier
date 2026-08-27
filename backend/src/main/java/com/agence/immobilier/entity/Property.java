@@ -18,6 +18,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
 
 @Entity
 @Table(name = "properties")
@@ -35,11 +38,23 @@ public class Property {
     @Column(nullable = false, length = 180)
     private String title;
 
+    @Column(length = 180)
+    private String titleFr;
+
+    @Column(length = 180)
+    private String titleEn;
+
     @Column(nullable = false, unique = true, length = 220)
     private String slug;
 
     @Column(nullable = false, columnDefinition = "text")
     private String description;
+
+    @Column(columnDefinition = "text")
+    private String descriptionFr;
+
+    @Column(columnDefinition = "text")
+    private String descriptionEn;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -84,6 +99,10 @@ public class Property {
 
     @OneToMany(mappedBy = "property", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<PropertyImage> images = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "property_feature_links", joinColumns = @JoinColumn(name = "property_id"), inverseJoinColumns = @JoinColumn(name = "feature_id"))
+    private List<PropertyFeature> features = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.Customizer;
-import com.agence.immobilier.security.AuthService;
 import com.agence.immobilier.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -46,6 +45,10 @@ public class SecurityConfig {
                     .requestMatchers("/api/properties/admin/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/properties", "/api/properties/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/inquiries").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/contact-messages").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                            .requestMatchers("/sitemap.xml", "/robots.txt").permitAll()
+                            .requestMatchers("/biens/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

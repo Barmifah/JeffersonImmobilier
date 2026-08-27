@@ -1,6 +1,7 @@
 package com.agence.immobilier.controller;
 
 import com.agence.immobilier.dto.request.LoginRequest;
+import com.agence.immobilier.dto.request.RefreshTokenRequest;
 import com.agence.immobilier.dto.response.AuthResponse;
 import com.agence.immobilier.security.AuthService;
 import jakarta.validation.Valid;
@@ -21,5 +22,10 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refresh(request.refreshToken());
     }
 }

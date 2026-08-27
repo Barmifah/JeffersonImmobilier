@@ -29,7 +29,16 @@ public class AuthService implements UserDetailsService {
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         UserDetails user = loadUserByUsername(request.email());
-        return new AuthResponse(jwtService.generateToken(user), "Bearer", jwtService.getExpirationMs());
+        return new AuthResponse(jwtService.generateToken(user), "Bearer", jwtService.getExpirationMs(), jwtService.generateRefreshToken(user));
+    }
+
+    public AuthResponse refresh(String refreshToken) {
+        String email = jwtService.extractUsername(refreshToken);
+        UserDetails user = loadUserByUsername(email);
+        if (!jwtService.isRefreshToken(refreshToken, user)) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token invalide");
+        }
+        return new AuthResponse(jwtService.generateToken(user), "Bearer", jwtService.getExpirationMs(), jwtService.generateRefreshToken(user));
     }
 
     @Override

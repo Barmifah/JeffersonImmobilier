@@ -1,0 +1,40 @@
+{
+  "navigation": {
+    "home": "Accueil",
+    "buy": "Acheter",
+    "rent": "Louer",
+    "land": "Terrains",
+    "agency": "L'agence",
+    "contact": "Contact",
+    "about": "À propos"
+  },
+  "language": { "french": "Français", "english": "English" },
+  "home": {
+    "eyebrow": "L'immobilier, avec une longueur d'avance",
+    "title": "Trouvez le bien",
+    "titleEmphasis": "qui vous ressemble.",
+    "intro": "Des adresses choisies avec exigence, pour habiter, investir et avancer sereinement au Burkina Faso.",
+    "search": "Rechercher",
+    "propertyType": "Je recherche",
+    "allTypes": "Tous les types",
+    "location": "Localisation",
+    "locationPlaceholder": "Ville ou quartier",
+    "budget": "Budget maximum",
+    "allBudgets": "Tous les budgets",
+    "buy": "Acheter",
+    "rent": "Louer"
+  },
+  "properties": {
+    "house": "Maison",
+    "apartment": "Appartement",
+    "land": "Terrain",
+    "villa": "Villa",
+    "details": "Voir les détails",
+    "available": "Disponible",
+    "bedrooms": "chambres",
+    "areaToSpecify": "Surface à préciser"
+  },
+  "common": { "loading": "Chargement...", "backHome": "Retour à l'accueil", "home": "Accueil" },
+  "offline": { "message": "Vous êtes actuellement hors connexion.", "ios": "Pour installer Jefferson Immobilier :\n1. Appuyez sur Partager.\n2. Sélectionnez « Ajouter à l'écran d'accueil »." },
+  "pwa": { "install": "Installer l'application", "update": "Une nouvelle version de Jefferson Immobilier est disponible." }
+}

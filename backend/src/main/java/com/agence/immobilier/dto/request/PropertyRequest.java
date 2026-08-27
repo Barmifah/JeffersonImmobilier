@@ -11,8 +11,12 @@ import java.util.List;
 public record PropertyRequest(
         @NotBlank String reference,
         @NotBlank String title,
+        String titleFr,
+        String titleEn,
         @NotBlank String slug,
         @NotBlank String description,
+        String descriptionFr,
+        String descriptionEn,
         @NotNull PropertyType propertyType,
         @NotNull OperationType operationType,
         @NotNull @DecimalMin("0.0") BigDecimal price,
@@ -27,6 +31,7 @@ public record PropertyRequest(
         Integer bathrooms,
         Integer livingRooms,
         Boolean parking,
-        List<@NotBlank String> imageUrls
+        List<@NotBlank String> imageUrls,
+        List<Long> featureIds
 ) {
 }

@@ -18,6 +18,7 @@ export interface AdminDashboardSummary {
   availableProperties: number
   totalInquiries: number
   newInquiries: number
+  totalViews: number
   properties: PropertySummary[]
   inquiries: InquirySummary[]
 }
@@ -25,8 +26,12 @@ export interface AdminDashboardSummary {
 export interface CreatePropertyPayload {
   reference: string
   title: string
+  titleFr?: string
+  titleEn?: string
   slug: string
   description: string
+  descriptionFr?: string
+  descriptionEn?: string
   propertyType: string
   operationType: 'VENTE' | 'LOCATION'
   price: number
@@ -37,10 +42,18 @@ export interface CreatePropertyPayload {
   area?: number
   bedrooms?: number
   imageUrls: string[]
+  featureIds?: number[]
 }
 
 export async function createProperty(payload: CreatePropertyPayload) {
   const response = await apiClient.post<PropertySummary>('/properties', payload, {
+    headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
+  })
+  return response.data
+}
+
+export async function updateProperty(id: number, payload: CreatePropertyPayload) {
+  const response = await apiClient.put<PropertySummary>(`/properties/${id}`, payload, {
     headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
   })
   return response.data

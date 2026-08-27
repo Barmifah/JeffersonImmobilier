@@ -1,0 +1,40 @@
+{
+  "navigation": {
+    "home": "Home",
+    "buy": "Buy",
+    "rent": "Rent",
+    "land": "Land",
+    "agency": "The agency",
+    "contact": "Contact",
+    "about": "About"
+  },
+  "language": { "french": "Français", "english": "English" },
+  "home": {
+    "eyebrow": "Real estate, with a head start",
+    "title": "Find the place",
+    "titleEmphasis": "that feels like you.",
+    "intro": "Thoughtfully selected addresses to live, invest and move forward with confidence in Burkina Faso.",
+    "search": "Search",
+    "propertyType": "I am looking for",
+    "allTypes": "All property types",
+    "location": "Location",
+    "locationPlaceholder": "City or district",
+    "budget": "Maximum budget",
+    "allBudgets": "All budgets",
+    "buy": "Buy",
+    "rent": "Rent"
+  },
+  "properties": {
+    "house": "House",
+    "apartment": "Apartment",
+    "land": "Land",
+    "villa": "Villa",
+    "details": "View details",
+    "available": "Available",
+    "bedrooms": "bedrooms",
+    "areaToSpecify": "Area to be specified"
+  },
+  "common": { "loading": "Loading...", "backHome": "Back home", "home": "Home" },
+  "offline": { "message": "You are currently offline.", "ios": "To install Jefferson Immobilier:\n1. Tap Share.\n2. Select 'Add to Home Screen'." },
+  "pwa": { "install": "Install the app", "update": "A new version of Jefferson Immobilier is available." }
+}

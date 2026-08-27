@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class InquiryService {
     private final PropertyRepository propertyRepository;
     private final PropertyInquiryRepository inquiryRepository;

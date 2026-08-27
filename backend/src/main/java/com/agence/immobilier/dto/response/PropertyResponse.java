@@ -11,8 +11,12 @@ public record PropertyResponse(
         Long id,
         String reference,
         String title,
+        String titleFr,
+        String titleEn,
         String slug,
         String description,
+        String descriptionFr,
+        String descriptionEn,
         PropertyType propertyType,
         OperationType operationType,
         BigDecimal price,
@@ -28,6 +32,8 @@ public record PropertyResponse(
         PropertyStatus status,
         Instant createdAt,
         Instant updatedAt,
-        List<String> imageUrls
+        List<String> imageUrls,
+        List<String> features,
+        List<Long> featureIds
 ) {
 }
