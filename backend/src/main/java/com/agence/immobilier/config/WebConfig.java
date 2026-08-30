@@ -1,21 +1,22 @@
 package com.agence.immobilier.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@SuppressWarnings("null")
 public class WebConfig implements WebMvcConfigurer {
-    @Value("${FRONTEND_URL:http://localhost:5173}")
-    private String frontendUrl;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins(frontendUrl)
+                .allowedOrigins(
+                        "http://localhost:5173",
+                        "https://www.jeffersonimmobilier.bf"
+                )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

@@ -38,7 +38,7 @@ cloudinary:
   upload-preset: ${CLOUDINARY_UPLOAD_PRESET:vj3x82ms}
 
 seo:
-  site-url: ${SEO_SITE_URL:https://jefferson-immobilier.example}
+  site-url: ${SEO_SITE_URL:https://jeffersonimmobilier.bf}
 
 logging:
   level:
