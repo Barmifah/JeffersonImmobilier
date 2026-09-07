@@ -26,7 +26,7 @@ class PropertyHtmlControllerTest {
         property.setStatus(PropertyStatus.AVAILABLE);
         when(repository.findBySlug("villa-ouaga")).thenReturn(Optional.of(property));
 
-        String html = new PropertyHtmlController(repository, "https://example.com").property("villa-ouaga");
+        String html = new PropertyHtmlController(repository, "https://jeffersonimmobilier.bf").property("villa-ouaga");
 
         assertThat(html).contains("<h1>Villa &amp; jardin</h1>", "application/ld+json", "rel=\"canonical\"", "185000000");
     }

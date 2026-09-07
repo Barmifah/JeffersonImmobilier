@@ -3,17 +3,31 @@ services:
     image: eclipse-temurin:17-jdk
     container_name: jefferson-backend-dev
     working_dir: /workspace
-    command: ["sh", "mvnw", "spring-boot:run"]
+    # Utilisation de sh -c pour éviter les conflits de format Windows/Linux sur le script mvnw
+    command: ["sh", "-c", "chmod +x mvnw && ./mvnw spring-boot:run"]
     volumes:
       - ./backend:/workspace
       - backend_maven_cache:/root/.m2
       - backend_target:/workspace/target
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier
+      DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier?user=jefferson&password=jefferson_dev
       DATABASE_USERNAME: jefferson
       DATABASE_PASSWORD: jefferson_dev
       FRONTEND_URL: http://localhost:5173
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SERVER_PORT: 8080
+      
+      # 🔐 CONFIGURATION SÉCURITÉ OBLIGATOIRE POUR LE DEV
+      JWT_SECRET: SuperSecureJWTKeyForDevelopment2026Minimum32CharsLong
+      JWT_EXPIRATION_MS: 86400000
+      JWT_REFRESH_EXPIRATION_MS: 604800000
+
+      # ☁️ CONFIGURATION CLOUDINARY POUR LE DEV
+      # En local, vous pouvez réutiliser vos vrais identifiants Cloudinary pour tester l'upload d'images
+      CLOUDINARY_CLOUD_NAME: your_cloud_name
+      CLOUDINARY_API_KEY: your_api_key
+      CLOUDINARY_API_SECRET: your_api_secret
+      CLOUDINARY_UPLOAD_PRESET: your_upload_preset
     ports:
       - "8080:8080"
     depends_on:
@@ -28,6 +42,9 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
+    environment:
+      # Indique à votre Axios local où trouver le backend dockerisé
+      VITE_API_URL: http://localhost:8080/api
     ports:
       - "5173:5173"
     depends_on:
@@ -55,3 +72,4 @@ volumes:
   backend_maven_cache:
   backend_target:
   frontend_node_modules:
+ 

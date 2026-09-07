@@ -22,7 +22,7 @@ services:
     container_name: jefferson-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier
+      DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier?user=jefferson&password=${DATABASE_PASSWORD}
       DATABASE_USERNAME: jefferson
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}

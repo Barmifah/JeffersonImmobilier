@@ -2,7 +2,10 @@ export async function uploadPropertyImage(file: File) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/images`, {
+  // Nettoie l'URL pour éviter les doubles slashes '//'
+  const baseUrl = (import.meta.env.VITE_API_URL ?? 'https://jeffersonimmobilier.bf').replace(/\/$/, '')
+  
+  const response = await fetch(`${baseUrl}/images`, {
     method: 'POST',
     body: formData,
   })

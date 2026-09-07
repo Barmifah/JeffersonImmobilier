@@ -17,7 +17,7 @@ import { useLocalizedProperty } from './hooks/useLocalizedProperty'
 import { InstallAppButton } from './components/InstallAppButton'
 import { OfflineStatus } from './components/OfflineStatus'
 import axios from 'axios'
-import { ArrowRight, BarChart3, BedDouble, Building2, ChevronDown, Eye, Home as HomeIcon, Mail, MapPin, Menu, MessageCircle, Phone, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
+import { ArrowRight, BarChart3, BedDouble, Building2, ChevronDown, ChevronLeft, ChevronRight, Eye, Home as HomeIcon, Mail, MapPin, Menu, MessageCircle, Phone, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import './App.css'
 
 const agencyEmail = 'Jeffersonservicefaso@gmail.com'
@@ -174,6 +174,16 @@ Je souhaite recevoir plus d'informations et convenir d'une visite.`)
 function PropertyDetail({ slug }: { slug: string }) {
   const { i18n, t } = useTranslation()
   const whatsappNumber = useWhatsAppNumber()
+  const [activeImage, setActiveImage] = useState(0)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  useEffect(() => {
+    if (!galleryOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setGalleryOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [galleryOpen])
   const property = properties.find((item) => item.id === slug)
   const apiProperty = usePublishedProperty(slug)
   if (!property && apiProperty.isLoading) return <main className="placeholder-page"><Brand /><p>{t('common.loading')}</p></main>
@@ -192,6 +202,8 @@ function PropertyDetail({ slug }: { slug: string }) {
     imageUrls: detail.imageUrls,
   } : property!
   const images = displayProperty.imageUrls?.length ? displayProperty.imageUrls : [displayProperty.image]
+  const goToPreviousImage = () => setActiveImage((current) => current > 0 ? current - 1 : images.length - 1)
+  const goToNextImage = () => setActiveImage((current) => current + 1 < images.length ? current + 1 : 0)
   const whatsappText = encodeURIComponent(`Bonjour Jefferson Immobilier,
 Je suis intéressé par le bien ${displayProperty.title}, référence ${displayProperty.reference}.
 Localisation : ${displayProperty.location}
@@ -201,7 +213,7 @@ Photo : ${images[0]}`)
   const detailDescription = detail ? ((i18n.language === 'en' ? detail.descriptionEn : detail.descriptionFr) || detail.description) : t('properties.fallbackDescription')
   const detailSeoDescription = t('properties.seoDescription', { type: displayProperty.type, location: displayProperty.location, price: displayProperty.price })
   const detailStructuredData = { '@context': 'https://schema.org', '@type': 'Residence', name: displayProperty.title, description: detailDescription, url: `${siteUrl}/biens/${displayProperty.id}`, image: images, address: { '@type': 'PostalAddress', addressLocality: displayProperty.location, addressCountry: 'BF' }, offers: { '@type': 'Offer', price: detail?.price ?? 0, priceCurrency: detail?.currency ?? 'XOF', availability: 'https://schema.org/InStock', url: `${siteUrl}/biens/${displayProperty.id}` }, provider: { '@type': 'RealEstateAgent', name: 'Jefferson Immobilier', telephone: '+22655773241' }, breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Accueil', item: siteUrl }, { '@type': 'ListItem', position: 2, name: 'Biens', item: `${siteUrl}/acheter` }, { '@type': 'ListItem', position: 3, name: displayProperty.title, item: `${siteUrl}/biens/${displayProperty.id}` }] } }
-  return <main className="property-detail-page"><header className="detail-header"><Brand /><Link to="/acheter" className="text-link">{t('common.backToListings')} <ArrowRight size={15} /></Link></header><div className="detail-gallery">{images.slice(0, 4).map((image, index) => <img key={image} className={index === 0 ? 'detail-cover' : ''} src={image} alt={`${displayProperty.title}, photo ${index + 1}`} />)}</div><section className="detail-content"><div className="detail-main"><p className="eyebrow dark">{displayProperty.type} · {displayProperty.reference}</p><h1>{displayProperty.title}</h1><p className="detail-location"><MapPin size={15} /> {displayProperty.location}</p><strong className="detail-price">{displayProperty.price}</strong><div className="detail-facts"><span>{displayProperty.area}</span>{displayProperty.beds > 0 && <span><BedDouble size={16} /> {displayProperty.beds} {t('properties.bedrooms')}</span>}<span><Building2 size={16} /> {t('properties.available')}</span></div><h2>{t('properties.aboutThisProperty')}</h2><p className="detail-description">{detailDescription}</p></div><aside className="contact-panel"><p className="eyebrow dark">{t('properties.askAboutProperty')}</p><h2>{t('properties.talkAboutIt')}</h2><p>{t('properties.teamAnswer')}</p><a className="detail-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={20} /> {t('properties.writeOnWhatsApp')}</a><a className="detail-email" href={`mailto:${agencyEmail}`}>{t('properties.orWriteAt', { email: agencyEmail })}</a></aside></section><Seo title={`${displayProperty.title} | Jefferson Immobilier`} description={detailSeoDescription} path={`/biens/${displayProperty.id}`} image={images[0]} structuredData={detailStructuredData} /></main>
+  return <main className="property-detail-page"><header className="detail-header"><Brand /><Link to="/acheter" className="text-link">{t('common.backToListings')} <ArrowRight size={15} /></Link></header><div className="detail-gallery">{images.slice(0, 4).map((image, index) => <button key={image} type="button" className={`detail-gallery-button ${index === 0 ? 'detail-cover' : ''}`} onClick={() => { setActiveImage(index); setGalleryOpen(true) }}><img src={image} alt={`${displayProperty.title}, photo ${index + 1}`} /><span className="detail-gallery-count">{index + 1} / {images.length}</span></button>)}</div><section className="detail-content"><div className="detail-main"><p className="eyebrow dark">{displayProperty.type} · {displayProperty.reference}</p><h1>{displayProperty.title}</h1><p className="detail-location"><MapPin size={15} /> {displayProperty.location}</p><strong className="detail-price">{displayProperty.price}</strong><div className="detail-facts"><span>{displayProperty.area}</span>{displayProperty.beds > 0 && <span><BedDouble size={16} /> {displayProperty.beds} {t('properties.bedrooms')}</span>}<span><Building2 size={16} /> {t('properties.available')}</span></div><h2>{t('properties.aboutThisProperty')}</h2><p className="detail-description">{detailDescription}</p></div><aside className="contact-panel"><p className="eyebrow dark">{t('properties.askAboutProperty')}</p><h2>{t('properties.talkAboutIt')}</h2><p>{t('properties.teamAnswer')}</p><a className="detail-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={20} /> {t('properties.writeOnWhatsApp')}</a><a className="detail-email" href={`mailto:${agencyEmail}`}>{t('properties.orWriteAt', { email: agencyEmail })}</a></aside></section>{galleryOpen && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`Galerie photo de ${displayProperty.title}`} onClick={() => setGalleryOpen(false)}><div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}><button type="button" className="gallery-close" onClick={() => setGalleryOpen(false)} aria-label="Fermer la galerie"><X /></button><button type="button" className="gallery-navigation gallery-previous" onClick={goToPreviousImage} aria-label="Photo précédente"><ChevronLeft /></button><img src={images[activeImage]} alt={`${displayProperty.title}, photo ${activeImage + 1} sur ${images.length}`} /><button type="button" className="gallery-navigation gallery-next" onClick={goToNextImage} aria-label="Photo suivante"><ChevronRight /></button><div className="gallery-thumbnails">{images.map((image, index) => <button type="button" className={index === activeImage ? 'active' : ''} key={image} onClick={() => setActiveImage(index)} aria-label={`Voir la photo ${index + 1}`}><img src={image} alt="" /></button>)}</div><span className="gallery-counter">{activeImage + 1} / {images.length}</span></div></div>}<Seo title={`${displayProperty.title} | Jefferson Immobilier`} description={detailSeoDescription} path={`/biens/${displayProperty.id}`} image={images[0]} structuredData={detailStructuredData} /></main>
 }
 
 function usePublishedProperty(slug: string) {

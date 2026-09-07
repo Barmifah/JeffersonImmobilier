@@ -7,7 +7,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier
       DATABASE_USERNAME: jefferson
       DATABASE_PASSWORD: jefferson_dev
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: https://www.jeffersonimmobilier.bf
     ports:
       - "8080:8080"
     depends_on:

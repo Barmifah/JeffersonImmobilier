@@ -3,4 +3,4 @@ Allow: /
 
 Disallow: /admin
 
-Sitemap: https://jefferson-immobilier.example/sitemap.xml
+Sitemap: https://jeffersonimmobilier.bf/sitemap.xml

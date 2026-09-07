@@ -14,7 +14,7 @@ public class SeoController {
     private final String siteUrl;
 
     public SeoController(PropertyRepository propertyRepository,
-                         @Value("${seo.site-url:https://jefferson-immobilier.example}") String siteUrl) {
+                         @Value("${seo.site-url:https://jeffersonimmobilier.bf}") String siteUrl) {
         this.propertyRepository = propertyRepository;
         this.siteUrl = siteUrl.replaceAll("/$", "");
     }

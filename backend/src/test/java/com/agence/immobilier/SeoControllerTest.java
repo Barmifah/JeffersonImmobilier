@@ -19,16 +19,16 @@ class SeoControllerTest {
         when(repository.findByStatusOrderByUpdatedAtDesc(com.agence.immobilier.entity.PropertyStatus.AVAILABLE))
                 .thenReturn(List.of(property));
 
-        SeoController controller = new SeoController(repository, "https://example.com");
+        SeoController controller = new SeoController(repository, "https://jeffersonimmobilier.bf");
 
-        assertThat(controller.sitemap()).contains("https://example.com/acheter", "https://example.com/ville/ouagadougou",
-            "https://example.com/quartier/ouaga-2000", "https://example.com/biens/villa-ouaga");
+        assertThat(controller.sitemap()).contains("https://jeffersonimmobilier.bf/acheter", "https://jeffersonimmobilier.bf/ville/ouagadougou",
+            "https://jeffersonimmobilier.bf/quartier/ouaga-2000", "https://jeffersonimmobilier.bf/biens/villa-ouaga");
     }
 
     @Test
     void robotsPointsToSitemapAndBlocksAdmin() {
-        SeoController controller = new SeoController(Mockito.mock(PropertyRepository.class), "https://example.com");
+        SeoController controller = new SeoController(Mockito.mock(PropertyRepository.class), "https://jeffersonimmobilier.bf");
 
-        assertThat(controller.robots()).contains("Disallow: /admin", "Sitemap: https://example.com/sitemap.xml");
+        assertThat(controller.robots()).contains("Disallow: /admin", "Sitemap: https://jeffersonimmobilier.bf/sitemap.xml");
     }
 }

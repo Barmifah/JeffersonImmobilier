@@ -15,8 +15,8 @@ public class AdminDataInitializer {
     @Bean
     CommandLineRunner createAdmin(UserRepository userRepository,
                                   PasswordEncoder passwordEncoder,
-                                  @Value("${ADMIN_EMAIL:admin@jefferson-immobilier.local}") String email,
-                                  @Value("${ADMIN_PASSWORD:ChangeMe-Jefferson-2026}") String password) {
+                                  @Value("${ADMIN_EMAIL:Jeffersonservicefaso@gmail.com}") String email,
+                                  @Value("${ADMIN_PASSWORD:jefferson2026@}") String password) {
         return args -> {
             if (userRepository.findByEmail(email).isEmpty()) {
                 User admin = new User();

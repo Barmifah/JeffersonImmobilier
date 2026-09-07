@@ -11,7 +11,7 @@ class JwtServiceTest {
     private static final String SECRET = "VGhlSmVmZmVyc29uSW1tb2JpbGllcl9kZXZlbG9wbWVudF9zZWNyZXRfa2V5XzMyX2J5dGVz";
 
     private final JwtService jwtService = new JwtService(SECRET, 60_000, 120_000);
-    private final UserDetails user = User.withUsername("admin@example.com").password("password").roles("ADMIN").build();
+    private final UserDetails user = User.withUsername("AdminJefferson").password("password2000@").roles("ADMIN").build();
 
     @Test
     void accessTokenIsValidAndRefreshTokenIsNotAnAccessToken() {
