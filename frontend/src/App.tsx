@@ -378,8 +378,8 @@ function AdminListingForm() {
       const urls = await Promise.all(files.map(uploadPropertyImage))
       setUploadedImages((current) => [...current, ...urls])
       setUploadStatus(t('admin.uploadSuccess', { count: urls.length }))
-    } catch {
-      setUploadStatus(t('admin.uploadError'))
+    } catch (error) {
+      setUploadStatus(error instanceof Error ? error.message : t('admin.uploadError'))
     }
   }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

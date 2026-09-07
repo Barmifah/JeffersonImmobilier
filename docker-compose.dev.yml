@@ -13,6 +13,8 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/jefferson_immobilier?user=jefferson&password=jefferson_dev
       DATABASE_USERNAME: jefferson
       DATABASE_PASSWORD: jefferson_dev
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       FRONTEND_URL: http://localhost:5173
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
       SERVER_PORT: 8080
@@ -24,10 +26,10 @@ services:
 
       # ☁️ CONFIGURATION CLOUDINARY POUR LE DEV
       # En local, vous pouvez réutiliser vos vrais identifiants Cloudinary pour tester l'upload d'images
-      CLOUDINARY_CLOUD_NAME: your_cloud_name
-      CLOUDINARY_API_KEY: your_api_key
-      CLOUDINARY_API_SECRET: your_api_secret
-      CLOUDINARY_UPLOAD_PRESET: your_upload_preset
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_UPLOAD_PRESET: ${CLOUDINARY_UPLOAD_PRESET}
     ports:
       - "8080:8080"
     depends_on:

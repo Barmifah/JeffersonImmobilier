@@ -1,3 +1,5 @@
+import { getAccessToken } from './apiClient'
+
 export async function uploadPropertyImage(file: File) {
   const formData = new FormData()
   formData.append('file', file)
@@ -8,9 +10,13 @@ export async function uploadPropertyImage(file: File) {
   const response = await fetch(`${baseUrl}/images`, {
     method: 'POST',
     body: formData,
+    headers: getAccessToken() ? { Authorization: `Bearer ${getAccessToken()}` } : undefined,
   })
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('Votre session administrateur a expiré. Reconnectez-vous.')
+    }
     throw new Error('Upload failed')
   }
 
