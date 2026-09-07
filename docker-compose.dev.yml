@@ -4,7 +4,7 @@ services:
     container_name: jefferson-backend-dev
     working_dir: /workspace
     # Utilisation de sh -c pour éviter les conflits de format Windows/Linux sur le script mvnw
-    command: ["sh", "-c", "chmod +x mvnw && ./mvnw spring-boot:run"]
+    command: ["sh", "-c", "chmod +x mvnw && ./mvnw -q -DskipTests compile && (./mvnw spring-boot:run & app_pid=$$!; trap 'kill $$app_pid 2>/dev/null || true' TERM INT; while kill -0 $$app_pid 2>/dev/null; do ./mvnw -q -DskipTests compile || true; sleep 2; done; wait $$app_pid)"]
     volumes:
       - ./backend:/workspace
       - backend_maven_cache:/root/.m2
@@ -45,6 +45,8 @@ services:
     environment:
       # Indique à votre Axios local où trouver le backend dockerisé
       VITE_API_URL: http://localhost:8080/api
+      # Fiabilise la détection des changements avec les volumes Docker Desktop sous Windows
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "5173:5173"
     depends_on:
