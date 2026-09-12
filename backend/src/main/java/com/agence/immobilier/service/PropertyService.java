@@ -11,6 +11,7 @@ import com.agence.immobilier.entity.PropertyView;
 import com.agence.immobilier.repository.PropertyRepository;
 import com.agence.immobilier.repository.PropertyViewRepository;
 import com.agence.immobilier.repository.PropertyFeatureRepository;
+import com.agence.immobilier.repository.PropertyInquiryRepository;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
@@ -27,12 +28,14 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final PropertyViewRepository propertyViewRepository;
     private final PropertyFeatureRepository propertyFeatureRepository;
+    private final PropertyInquiryRepository propertyInquiryRepository;
 
     public PropertyService(PropertyRepository propertyRepository, PropertyViewRepository propertyViewRepository,
-                           PropertyFeatureRepository propertyFeatureRepository) {
+                           PropertyFeatureRepository propertyFeatureRepository, PropertyInquiryRepository propertyInquiryRepository) {
         this.propertyRepository = propertyRepository;
         this.propertyViewRepository = propertyViewRepository;
         this.propertyFeatureRepository = propertyFeatureRepository;
+        this.propertyInquiryRepository = propertyInquiryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -118,6 +121,8 @@ public class PropertyService {
         if (!propertyRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bien introuvable");
         }
+        propertyInquiryRepository.deleteByProperty_Id(id);
+        propertyViewRepository.deleteByProperty_Id(id);
         propertyRepository.deleteById(id);
     }
 

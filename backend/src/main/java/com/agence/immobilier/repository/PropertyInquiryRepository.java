@@ -8,4 +8,6 @@ public interface PropertyInquiryRepository extends JpaRepository<PropertyInquiry
 	long countByStatus(InquiryStatus status);
 
 	java.util.List<PropertyInquiry> findAllByOrderByCreatedAtDesc();
+
+	void deleteByProperty_Id(Long propertyId);
 }
