@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +40,7 @@ public class ImageStorageService {
         try {
             Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "folder", "jefferson-immobilier/properties",
+                    "public_id", "property-" + UUID.randomUUID(),
                     "upload_preset", uploadPreset,
                     "resource_type", "image"));
             return (String) result.get("secure_url");
