@@ -63,7 +63,6 @@
     "cityOugaText": "The capital, in a different way.",
     "cityBobo": "Bobo-Dioulasso",
     "cityBoboText": "The art of living gently.",
-    "heroNote": "Places with history\nand many more pages to write.",
     "contactProject": "Let’s talk about your project",
     "footerMessage": "A property project deserves the right attention."
   },
@@ -331,6 +330,10 @@
     "statusUpdated": "Status updated",
     "publishSuccess": "Listing published successfully",
     "cannotPublish": "Unable to publish the listing",
+    "deleteProperty": "Delete listing",
+    "confirmDeleteProperty": "Delete listing \u201c{{title}}\u201d? This action cannot be undone.",
+    "deletePropertySuccess": "Listing deleted successfully",
+    "cannotDeleteProperty": "Unable to delete the listing",
     "updateProperty": "Save changes",
     "propertySaved": "Listing saved successfully!",
     "saveProperty": "Saving listing...",

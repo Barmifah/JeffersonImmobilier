@@ -63,7 +63,6 @@
     "cityOugaText": "La capitale, autrement.",
     "cityBobo": "Bobo-Dioulasso",
     "cityBoboText": "L'art de vivre en douceur.",
-    "heroNote": "Des lieux qui ont une histoire\net encore beaucoup à écrire.",
     "contactProject": "Parlons de votre projet",
     "footerMessage": "Un projet immobilier mérite la bonne attention."
   },
@@ -331,6 +330,10 @@
     "statusUpdated": "Statut mis à jour",
     "publishSuccess": "Annonce publiée avec succès",
     "cannotPublish": "Impossible de publier l'annonce",
+    "deleteProperty": "Supprimer l'annonce",
+    "confirmDeleteProperty": "Supprimer l'annonce « {{title}} » ? Cette action est définitive.",
+    "deletePropertySuccess": "Annonce supprimée avec succès",
+    "cannotDeleteProperty": "Impossible de supprimer l'annonce",
     "updateProperty": "Enregistrer les modifications",
     "propertySaved": "Annonce enregistrée avec succès !",
     "saveProperty": "Enregistrement de l’annonce...",

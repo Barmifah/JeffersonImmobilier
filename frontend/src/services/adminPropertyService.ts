@@ -72,6 +72,12 @@ export async function updatePropertyStatus(id: number, status: string) {
   return response.data
 }
 
+export async function deleteProperty(id: number) {
+  await apiClient.delete(`/properties/${id}`, {
+    headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
+  })
+}
+
 export async function updateInquiryStatus(id: number, status: string) {
   const response = await apiClient.patch<InquirySummary>(`/inquiries/${id}/status`, null, {
     params: { status },
