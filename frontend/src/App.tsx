@@ -243,7 +243,7 @@ function usePublishedProperty(slug: string) {
   return useQuery({ queryKey: ['property', 'published', slug], queryFn: () => getPublishedProperty(slug), retry: 1, staleTime: 60_000 })
 }
 
-function PropertyCatalog({ mode }: { mode: 'acheter' | 'louer' | 'terrains' }) {
+function PropertyCatalog({ mode, fixedType }: { mode: 'acheter' | 'louer' | 'terrains'; fixedType?: string }) {
   const { t } = useTranslation()
   const params = new URLSearchParams(window.location.search)
   const [search, setSearch] = useState(params.get('location') ?? '')
@@ -251,9 +251,10 @@ function PropertyCatalog({ mode }: { mode: 'acheter' | 'louer' | 'terrains' }) {
   const [maxPrice, setMaxPrice] = useState(params.get('maxPrice') ?? '')
   const [page, setPage] = useState(0)
   const operation = mode === 'louer' ? 'LOCATION' : 'VENTE'
-  const query = usePropertySearch({ operationType: operation, location: search || undefined, propertyType: mode === 'terrains' ? 'TERRAIN' : type.toUpperCase() || undefined, maxPrice: maxPrice || undefined, page, size: 12 }) as ReturnType<typeof usePropertySearch> & { data: NonNullable<ReturnType<typeof usePropertySearch>['data']> }
-  const title = mode === 'acheter' ? t('catalog.buy') : mode === 'louer' ? t('catalog.rent') : t('catalog.land')
-  const description = mode === 'acheter' ? t('catalog.buyDescription') : mode === 'louer' ? t('catalog.rentDescription') : t('catalog.landDescription')
+  const query = usePropertySearch({ operationType: operation, location: search || undefined, propertyType: fixedType ?? (mode === 'terrains' ? 'TERRAIN' : type.toUpperCase() || undefined), maxPrice: maxPrice || undefined, page, size: 12 }) as ReturnType<typeof usePropertySearch> & { data: NonNullable<ReturnType<typeof usePropertySearch>['data']> }
+  const fixedTypeLabel = fixedType ? fixedType.charAt(0) + fixedType.slice(1).toLowerCase() : ''
+  const title = fixedType ? `${fixedTypeLabel} ${mode === 'louer' ? 'à louer' : 'à vendre'}` : mode === 'acheter' ? t('catalog.buy') : mode === 'louer' ? t('catalog.rent') : t('catalog.land')
+  const description = fixedType ? `Découvrez nos ${fixedTypeLabel.toLowerCase()}s ${mode === 'louer' ? 'à louer' : 'à vendre'} au Burkina Faso.` : mode === 'acheter' ? t('catalog.buyDescription') : mode === 'louer' ? t('catalog.rentDescription') : t('catalog.landDescription')
   const apiCatalog: PropertyCardData[] = (query.data?.content ?? []).map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, operationType: property.operationType, title: property.title, titleFr: property.titleFr, titleEn: property.titleEn, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'), imageUrls: property.imageUrls, createdAt: property.createdAt }))
   const sourceCatalog = apiCatalog
   const catalog = mode === 'terrains' ? sourceCatalog.filter((property) => property.type.includes('TERRAIN') || property.type.includes('Terrain')) : sourceCatalog
