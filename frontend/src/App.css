@@ -1,3 +1,4 @@
+.translate-content-button{margin-top:8px}.translation-status{color:var(--muted);font-size:11px;line-height:1.5}
  .admin-delete-button{display:grid;place-items:center;width:42px;height:42px;padding:0;margin:0;border:1px solid rgba(184,74,53,.28);background:transparent;color:#b84a35;cursor:pointer}
 .admin-delete-button:hover{background:#b84a35;color:#fff}
 @media (max-width:800px){.admin-delete-button{margin-left:auto}}
@@ -58,6 +59,8 @@
 .property-card:nth-child(3){--card-accent:#c88f4a}
 .property-card .property-image,.property-card.featured .property-image{border-radius:0;height:310px}
 .property-card .property-badge{top:auto;bottom:14px;left:14px;border-radius:999px;background:rgba(32,38,37,.72);color:#fff;padding:7px 11px}
+.property-card .property-new-badge{position:absolute;top:14px;left:14px;border-radius:999px;background:var(--lime);color:var(--ink);padding:7px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.property-card .property-operation-badge{position:absolute;top:14px;right:14px;border-radius:999px;background:rgba(32,38,37,.82);color:#fff;padding:7px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .property-card .property-arrow{right:14px;bottom:-20px;z-index:2;background:#fff;color:var(--card-accent);box-shadow:0 4px 12px rgba(32,38,37,.18)}
 .property-card .property-info{padding:28px 16px 18px}
 .property-card .property-info h3{font-family:'DM Sans',sans-serif;font-size:19px;font-weight:700;color:#526b7a;margin-bottom:10px}

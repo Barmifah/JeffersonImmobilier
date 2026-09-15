@@ -34,7 +34,7 @@
   },
   "seo": {
     "homeTitle": "Jefferson Immobilier | Agence immobilière au Burkina Faso",
-    "homeDescription": "Découvrez les maisons, villas, appartements et terrains proposés par Jefferson Immobilier au Burkina Faso."
+    "homeDescription": "Découvrez les maisons, villas, appartements, duplex, triplex, immeubles, bureaux, entrepôts, boutiques, parcelles et terrains proposés par Jefferson Immobilier au Burkina Faso."
   },
   "home": {
     "eyebrow": "L'immobilier, avec une longueur d'avance",
@@ -71,6 +71,9 @@
     "apartment": "Appartement",
     "land": "Terrain",
     "villa": "Villa",
+    "new": "Nouveau",
+    "forSale": "À vendre",
+    "forRent": "À louer",
     "details": "Voir les détails",
     "available": "Disponible",
     "bedrooms": "chambres",
@@ -103,8 +106,8 @@
     "rent": "Biens à louer",
     "land": "Terrains à bâtir",
     "forProjects": "pour vos projets.",
-    "buyDescription": "Maisons, villas et appartements à vendre sélectionnés par Jefferson Immobilier.",
-    "rentDescription": "Maisons, villas et appartements à louer au Burkina Faso.",
+    "buyDescription": "Maisons, villas, appartements, duplex, triplex, immeubles, bureaux, entrepôts, boutiques, parcelles et terrains à vendre sélectionnés par Jefferson Immobilier.",
+    "rentDescription": "Maisons, villas, appartements, duplex, triplex, immeubles, bureaux, entrepôts et boutiques à louer au Burkina Faso.",
     "landDescription": "Terrains à vendre pour vos projets immobiliers au Burkina Faso.",
     "allTypes": "Tous les types",
     "allBudgets": "Budget maximum",
@@ -115,7 +118,7 @@
     "viewListings": "Voir les annonces",
     "immobilierBurkina": "Immobilier au",
     "burkinaFaso": "Burkina Faso.",
-    "burkinaDescription": "Maisons, appartements, villas et terrains sélectionnés par Jefferson Immobilier au Burkina Faso.",
+    "burkinaDescription": "Maisons, appartements, villas, duplex, triplex, immeubles, bureaux, entrepôts, boutiques, parcelles et terrains sélectionnés par Jefferson Immobilier au Burkina Faso.",
     "ouaga": "Ouagadougou.",
     "ouagaDescription": "Découvrez les opportunités immobilières à Ouagadougou avec Jefferson Immobilier.",
     "bobo": "Bobo-Dioulasso.",
@@ -148,7 +151,7 @@
     "atCity": "à {{city}}.",
     "exploreCity": "Découvrir la ville",
     "seoTitle": "Immobilier à {{city}} | Jefferson Immobilier",
-    "seoDescription": "Découvrez les biens immobiliers proposés par Jefferson Immobilier à {{city}}. Maisons, appartements, villas et terrains."
+    "seoDescription": "Découvrez les biens immobiliers proposés par Jefferson Immobilier à {{city}} : maisons, appartements, villas, duplex, triplex, immeubles, bureaux, entrepôts, boutiques, parcelles et terrains."
   },
   "about": {
     "label": "L'agence",
@@ -198,7 +201,7 @@
     "q1": "Comment visiter un bien ?",
     "q1Text": "Contactez notre équipe par WhatsApp ou e-mail pour convenir d'un rendez-vous.",
     "q2": "Quels biens proposez-vous ?",
-    "q2Text": "Maisons, villas, appartements et terrains sélectionnés au Burkina Faso.",
+    "q2Text": "Maisons, villas, appartements, duplex, triplex, immeubles, bureaux, entrepôts, boutiques, parcelles et terrains sélectionnés au Burkina Faso.",
     "q3": "Où intervenez-vous ?",
     "q3Text": "Notre catalogue couvre notamment Ouagadougou et Bobo-Dioulasso.",
     "seoTitle": "FAQ | Jefferson Immobilier",
@@ -238,7 +241,12 @@
     "frenchDescription": "Description française",
     "frenchDescriptionPlaceholder": "Description en français",
     "englishDescription": "English description",
-    "englishDescriptionPlaceholder": "Description in English",
+    "englishDescriptionPlaceholder": "Description en anglais",
+    "translateToEnglish": "Traduire en anglais",
+    "translating": "Traduction en cours...",
+    "translationSuccess": "Traduction terminée. Vous pouvez encore modifier les textes anglais.",
+    "translationMissingSource": "Renseignez au moins un texte français.",
+    "translationError": "La traduction est indisponible. Vous pouvez saisir le texte anglais manuellement.",
     "facilities": "Équipements",
     "listingTitle": "Titre de l'annonce",
     "listingTitlePlaceholder": "Ex. Villa contemporaine avec piscine",

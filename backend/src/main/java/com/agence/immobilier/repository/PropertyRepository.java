@@ -13,7 +13,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long>, JpaSp
 
     Optional<Property> findBySlug(String slug);
 
-    List<Property> findByOperationTypeAndStatus(OperationType operationType, PropertyStatus status);
+    List<Property> findByOperationTypeAndStatusOrderByCreatedAtDesc(OperationType operationType, PropertyStatus status);
 
     List<Property> findByStatusOrderByUpdatedAtDesc(PropertyStatus status);
 }

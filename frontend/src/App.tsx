@@ -8,9 +8,9 @@ import { usePropertySearch } from './hooks/usePropertySearch'
 import { useWhatsAppNumber } from './hooks/useWhatsAppNumber'
 import { usePropertyFeatures } from './hooks/usePropertyFeatures'
 import { uploadPropertyImage } from './services/imageService'
-import { createProperty, deleteProperty, getAdminDashboard, updateInquiryStatus, updateProperty, updatePropertyStatus, type AdminDashboardSummary, type InquirySummary } from './services/adminPropertyService'
+import { createProperty, deleteProperty, getAdminDashboard, translatePropertyContent, updateInquiryStatus, updateProperty, updatePropertyStatus, type AdminDashboardSummary, type InquirySummary } from './services/adminPropertyService'
 import { login, restoreSession } from './services/authService'
-import { getPublishedProperty } from './services/propertyService'
+import { getPublishedProperty, sortPropertiesByRecency } from './services/propertyService'
 import { getContactMessages, getSeoMetadata, getSocialLinks, getWebsiteSettings, saveSeoMetadata, saveWebsiteSetting, submitContactMessage, type ContactMessage, type SeoMetadata, type SocialLink, type WebsiteSetting } from './services/contentAdminService'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { useLocalizedProperty } from './hooks/useLocalizedProperty'
@@ -28,7 +28,15 @@ const socialLinks = {
   tiktok: 'https://www.tiktok.com/@jefferson.services?_r=1&_t=ZS-99AziupipCC',
 }
 const siteUrl = import.meta.env.VITE_SITE_URL ?? 'https://jefferson-immobilier.example'
-type PropertyCardData = { id: string; reference: string; type: string; title: string; titleFr?: string; titleEn?: string; location: string; price: string; image: string; beds: number; area: string; imageUrls?: string[] }
+type PropertyCardData = { id: string; reference: string; type: string; operationType?: 'VENTE' | 'LOCATION'; title: string; titleFr?: string; titleEn?: string; location: string; price: string; image: string; beds: number; area: string; imageUrls?: string[]; createdAt?: string }
+
+const newPropertyWindowMs = 6 * 60 * 60 * 1000
+
+function isNewProperty(createdAt?: string, now?: number) {
+  if (!createdAt || now === undefined) return false
+  const publishedAt = new Date(createdAt).getTime()
+  return Number.isFinite(publishedAt) && now - publishedAt >= 0 && now - publishedAt < newPropertyWindowMs
+}
 
 function Seo({ title, description, path = '/', image, structuredData }: { title: string; description: string; path?: string; image?: string; structuredData?: Record<string, unknown> }) {
   const { i18n } = useTranslation()
@@ -106,12 +114,13 @@ function Home() {
   const whatsappNumber = useWhatsAppNumber()
   const salesProperties = usePublishedProperties('VENTE')
   const rentalProperties = usePublishedProperties('LOCATION')
-  const publishedProperties = [...(salesProperties.data ?? []), ...(rentalProperties.data ?? [])]
+  const publishedProperties = sortPropertiesByRecency([...(salesProperties.data ?? []), ...(rentalProperties.data ?? [])])
   const visibleProperties = publishedProperties.length
     ? publishedProperties.map((property) => ({
       id: property.slug,
       reference: property.reference,
       type: property.propertyType,
+      operationType: property.operationType,
       title: property.title,
       titleFr: property.titleFr,
       titleEn: property.titleEn,
@@ -119,6 +128,7 @@ function Home() {
       price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`,
       image: property.imageUrls?.[0] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85',
       imageUrls: property.imageUrls,
+      createdAt: property.createdAt,
       beds: property.bedrooms ?? 0,
       area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'),
     }))
@@ -151,8 +161,22 @@ function Home() {
 
 function PropertyCard({ property, featured }: { property: PropertyCardData; featured?: boolean }) {
   const { t } = useTranslation()
+  const [now, setNow] = useState<number>()
   const localized = useLocalizedProperty({ title: property.title, description: '', titleFr: property.titleFr, titleEn: property.titleEn, descriptionFr: '', descriptionEn: '' })
   const whatsappNumber = useWhatsAppNumber()
+  useEffect(() => {
+    const initialTimeout = window.setTimeout(() => setNow(Date.now()), 0)
+    if (!property.createdAt) return () => window.clearTimeout(initialTimeout)
+    const publishedAt = new Date(property.createdAt).getTime()
+    if (!Number.isFinite(publishedAt)) return () => window.clearTimeout(initialTimeout)
+    const remainingMs = publishedAt + newPropertyWindowMs - Date.now()
+    if (remainingMs <= 0) return () => window.clearTimeout(initialTimeout)
+    const timeout = window.setTimeout(() => setNow(Date.now()), remainingMs)
+    return () => {
+      window.clearTimeout(initialTimeout)
+      window.clearTimeout(timeout)
+    }
+  }, [property.createdAt])
   const propertyUrl = `${window.location.origin}/biens/${property.id}`
   const whatsappText = encodeURIComponent(`Bonjour Jefferson Immobilier,
 
@@ -167,7 +191,7 @@ Voici l'annonce : ${propertyUrl}
 Photo principale : ${property.image}
 
 Je souhaite recevoir plus d'informations et convenir d'une visite.`)
-  return <article className={featured ? 'property-card featured' : 'property-card'}><Link to={`/biens/${property.id}`}><div className="property-image"><img src={property.image} alt={localized.title} /><span className="property-badge">{property.type}</span><span className="property-arrow"><ArrowRight size={17} /></span></div></Link><div className="property-info"><Link to={`/biens/${property.id}`}><h3>{localized.title}</h3></Link><p><MapPin size={13} /> {property.location}</p><strong>{property.price}</strong><div className="property-meta"><span>{property.area}</span>{property.beds > 0 && <span><BedDouble size={14} /> {property.beds} {t('properties.bedrooms')}</span>}<span><Building2 size={14} /> {property.type.includes('Terrain') ? t('properties.land') : t('properties.available')}</span></div><a className="property-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={15} /> {t('properties.requestOnWhatsApp')}</a></div></article>
+  return <article className={featured ? 'property-card featured' : 'property-card'}><Link to={`/biens/${property.id}`}><div className="property-image"><img src={property.image} alt={localized.title} />{isNewProperty(property.createdAt, now) && <span className="property-new-badge">{t('properties.new')}</span>}{property.operationType && <span className="property-operation-badge">{property.operationType === 'VENTE' ? t('properties.forSale') : t('properties.forRent')}</span>}<span className="property-badge">{property.type}</span><span className="property-arrow"><ArrowRight size={17} /></span></div></Link><div className="property-info"><Link to={`/biens/${property.id}`}><h3>{localized.title}</h3></Link><p><MapPin size={13} /> {property.location}</p><strong>{property.price}</strong><div className="property-meta"><span>{property.area}</span>{property.beds > 0 && <span><BedDouble size={14} /> {property.beds} {t('properties.bedrooms')}</span>}<span><Building2 size={14} /> {property.type.includes('Terrain') ? t('properties.land') : t('properties.available')}</span></div><a className="property-whatsapp" href={`https://wa.me/${whatsappNumber}?text=${whatsappText}`}><MessageCircle size={15} /> {t('properties.requestOnWhatsApp')}</a></div></article>
 }
 
 function PropertyDetail({ slug }: { slug: string }) {
@@ -230,12 +254,12 @@ function PropertyCatalog({ mode }: { mode: 'acheter' | 'louer' | 'terrains' }) {
   const query = usePropertySearch({ operationType: operation, location: search || undefined, propertyType: mode === 'terrains' ? 'TERRAIN' : type.toUpperCase() || undefined, maxPrice: maxPrice || undefined, page, size: 12 }) as ReturnType<typeof usePropertySearch> & { data: NonNullable<ReturnType<typeof usePropertySearch>['data']> }
   const title = mode === 'acheter' ? t('catalog.buy') : mode === 'louer' ? t('catalog.rent') : t('catalog.land')
   const description = mode === 'acheter' ? t('catalog.buyDescription') : mode === 'louer' ? t('catalog.rentDescription') : t('catalog.landDescription')
-  const apiCatalog: PropertyCardData[] = (query.data?.content ?? []).map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, title: property.title, titleFr: property.titleFr, titleEn: property.titleEn, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'), imageUrls: property.imageUrls }))
+  const apiCatalog: PropertyCardData[] = (query.data?.content ?? []).map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, operationType: property.operationType, title: property.title, titleFr: property.titleFr, titleEn: property.titleEn, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'), imageUrls: property.imageUrls, createdAt: property.createdAt }))
   const sourceCatalog = apiCatalog
   const catalog = mode === 'terrains' ? sourceCatalog.filter((property) => property.type.includes('TERRAIN') || property.type.includes('Terrain')) : sourceCatalog
   const filteredCatalog = catalog
   if (!query.data) return <main className="placeholder-page"><Brand /><p>{t('common.loadingProperties')}</p></main>
-  return <main className="catalog-page"><header className="catalog-header"><Brand /><Link to="/" className="text-link">{t('common.home')} <ArrowRight size={15} /></Link></header><section className="catalog-intro"><p className="eyebrow dark">{t('catalog.catalogue')}</p><h1>{title}<br /><em>{t('catalog.forProjects')}</em></h1><p>{description}</p></section><div className="catalog-toolbar"><span>{t('common.propertyCount', { count: query.data?.totalElements ?? filteredCatalog.length })}</span><div className="catalog-filters"><label><Search size={14} /><input value={search} onChange={(event) => { setPage(0); setSearch(event.target.value) }} placeholder={t('catalog.cityOrDistrict')} /></label><select value={type} onChange={(event) => { setPage(0); setType(event.target.value) }}><option value="">{t('catalog.allTypes')}</option><option value="maison">{t('properties.house')}</option><option value="villa">{t('properties.villa')}</option><option value="appartement">{t('properties.apartment')}</option><option value="terrain">{t('properties.land')}</option></select><select value={maxPrice} onChange={(event) => { setPage(0); setMaxPrice(event.target.value) }}><option value="">{t('catalog.allBudgets')}</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select></div></div><section className="catalog-grid">{filteredCatalog.length ? filteredCatalog.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">{t('common.noResults')}</p>}</section>{query.data && query.data.totalPages > 1 && <div className="catalog-pagination"><button className="button-dark" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>{t('common.previousPage')}</button><span>{t('common.pageOf', { current: page + 1, total: query.data.totalPages })}</span><button className="button-dark" disabled={page + 1 >= query.data.totalPages} onClick={() => setPage((current) => current + 1)}>{t('common.nextPage')}</button></div>}<Seo title={`${title} | Jefferson Immobilier`} description={description} path={`/${mode}`} /></main>
+    return <main className="catalog-page"><header className="catalog-header"><Brand /><Link to="/" className="text-link">{t('common.home')} <ArrowRight size={15} /></Link></header><section className="catalog-intro"><p className="eyebrow dark">{t('catalog.catalogue')}</p><h1>{title}<br /><em>{t('catalog.forProjects')}</em></h1><p>{description}</p></section><div className="catalog-toolbar"><span>{t('common.propertyCount', { count: query.data?.totalElements ?? filteredCatalog.length })}</span><div className="catalog-filters"><label><Search size={14} /><input value={search} onChange={(event) => { setPage(0); setSearch(event.target.value) }} placeholder={t('catalog.cityOrDistrict')} /></label><select value={type} onChange={(event) => { setPage(0); setType(event.target.value) }}><option value="">{t('catalog.allTypes')}</option><option value="Maison">{t('properties.house')}</option><option value="Appartement">{t('properties.apartment')}</option><option value="Terrain">{t('properties.land')}</option><option value="Villa">{t('properties.villa')}</option></select><select value={maxPrice} onChange={(event) => { setPage(0); setMaxPrice(event.target.value) }}><option value="">{t('catalog.allBudgets')}</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select></div></div><section className="catalog-grid">{filteredCatalog.length ? filteredCatalog.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">{t('common.noResults')}</p>}</section>{query.data && query.data.totalPages > 1 && <div className="catalog-pagination"><button className="button-dark" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>{t('common.previousPage')}</button><span>{t('common.pageOf', { current: page + 1, total: query.data.totalPages })}</span><button className="button-dark" disabled={page + 1 >= query.data.totalPages} onClick={() => setPage((current) => current + 1)}>{t('common.nextPage')}</button></div>}<Seo title={`${title} | Jefferson Immobilier`} description={description} path={`/${mode}`} /></main>
   return <main className="catalog-page"><header className="catalog-header"><Brand /><Link to="/" className="text-link">Accueil <ArrowRight size={15} /></Link></header><section className="catalog-intro"><p className="eyebrow dark">Catalogue Jefferson</p><h1>{title}<br /><em>pour vos projets.</em></h1><p>{description}</p></section><div className="catalog-toolbar"><span>{query.data?.totalElements ?? filteredCatalog.length} annonce(s) disponible(s)</span><div className="catalog-filters"><label><Search size={14} /><input value={search} onChange={(event) => { setPage(0); setSearch(event.target.value) }} placeholder="Ville ou quartier" /></label><select value={type} onChange={(event) => { setPage(0); setType(event.target.value) }}><option value="">Tous les types</option><option value="maison">Maison</option><option value="villa">Villa</option><option value="appartement">Appartement</option><option value="terrain">Terrain</option></select><select value={maxPrice} onChange={(event) => { setPage(0); setMaxPrice(event.target.value) }}><option value="">Budget maximum</option><option value="50000000">50 000 000 FCFA</option><option value="100000000">100 000 000 FCFA</option><option value="200000000">200 000 000 FCFA</option></select></div></div><section className="catalog-grid">{filteredCatalog.length ? filteredCatalog.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">Aucune annonce réelle ne correspond à votre recherche.</p>}</section>{query.data && query.data.totalPages > 1 && <div className="catalog-pagination"><button className="button-dark" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>Page précédente</button><span>Page {page + 1} sur {query.data.totalPages}</span><button className="button-dark" disabled={page + 1 >= query.data.totalPages} onClick={() => setPage((current) => current + 1)}>Page suivante</button></div>}<Seo title={`${title} | Jefferson Immobilier`} description={description} path={`/${mode}`} /></main>
 }
 
@@ -244,9 +268,9 @@ function CityPage({ city }: { city: string }) {
   const cityName = city === 'bobo-dioulasso' ? 'Bobo-Dioulasso' : 'Ouagadougou'
   const sales = usePublishedProperties('VENTE')
   const rentals = usePublishedProperties('LOCATION')
-  const cityProperties: PropertyCardData[] = [...(sales.data ?? []), ...(rentals.data ?? [])]
+  const cityProperties: PropertyCardData[] = sortPropertiesByRecency([...(sales.data ?? []), ...(rentals.data ?? [])])
     .filter((property) => `${property.city} ${property.district ?? ''}`.toLowerCase().includes(cityName.toLowerCase()))
-    .map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, title: property.title, titleFr: property.titleFr, titleEn: property.titleEn, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'), imageUrls: property.imageUrls }))
+    .map((property) => ({ id: property.slug, reference: property.reference, type: property.propertyType, operationType: property.operationType, title: property.title, titleFr: property.titleFr, titleEn: property.titleEn, location: [property.district, property.city].filter(Boolean).join(', '), price: `${property.price.toLocaleString('fr-FR')} ${property.currency}`, image: property.imageUrls?.[0] ?? properties[0].image, beds: property.bedrooms ?? 0, area: property.area ? `${property.area} m²` : t('properties.areaToSpecify'), imageUrls: property.imageUrls, createdAt: property.createdAt }))
   return <main className="editorial-page"><header className="editorial-header"><Brand /><Link to="/" className="text-link">{t('common.home')} <ArrowRight size={15} /></Link></header><section className="editorial-hero city-hero"><p className="eyebrow dark">{t('city.exploreDestination')}</p><h1>{t('city.immobilierAt')}<br /><em>{cityName}.</em></h1><p>{t('city.availableInCity', { city: cityName })}</p></section><section className="editorial-list"><div className="section-heading"><div><p className="eyebrow dark">{t('city.localSelection')}</p><h2>{t('city.ourAddresses')}<br /><em>{t('city.atCity', { city: cityName })}</em></h2></div><Link to="/acheter" className="text-link">{t('city.seeCatalog')} <ArrowRight size={15} /></Link></div><div className="catalog-grid">{cityProperties.length ? cityProperties.map((property, index) => <PropertyCard key={property.id} property={property} featured={index === 0} />) : <p className="empty-message">{t('common.noCityResults')}</p>}</div></section><Seo title={t('city.seoTitle', { city: cityName })} description={t('city.seoDescription', { city: cityName })} path={`/ville/${city}`} /></main>
 }
 
@@ -326,13 +350,57 @@ function AdminListingForm() {
     })
     const form = document.querySelector<HTMLFormElement>('.listing-form')
     const uploadInput = form?.querySelector<HTMLInputElement>('input[type="file"]')
+    const propertyTypeSelect = form?.querySelector<HTMLSelectElement>('[name="propertyType"]')
+    if (propertyTypeSelect) {
+      const additionalTypes = [
+        ['DUPLEX', 'Duplex'],
+        ['TRIPLEX', 'Triplex'],
+        ['PARCELLE', 'Parcelle'],
+        ['IMMEUBLE', 'Immeuble'],
+        ['BUREAU', 'Bureau'],
+        ['ENTREPOT', 'Entrepôt'],
+        ['BOUTIQUE', 'Boutique'],
+      ]
+      additionalTypes.forEach(([value, label]) => {
+        if (propertyTypeSelect.querySelector(`option[value="${value}"]`)) return
+        propertyTypeSelect.append(new Option(label, value))
+      })
+    }
     if (form && !form.querySelector('[name="titleFr"]')) {
       const title = form.querySelector<HTMLInputElement>('[name="title"]')
       const description = form.querySelector<HTMLTextAreaElement>('[name="description"]')
       const translations = document.createElement('div')
       translations.className = 'listing-translations'
       translations.innerHTML = `<p class="eyebrow dark">${t('admin.englishVersions')}</p><label>${t('admin.frenchTitle')}<input name="titleFr" placeholder="${t('admin.frenchTitlePlaceholder')}"></label><label>${t('admin.englishTitle')}<input name="titleEn" placeholder="${t('admin.englishTitlePlaceholder')}"></label><label>${t('admin.frenchDescription')}<textarea name="descriptionFr" rows="4" placeholder="${t('admin.frenchDescriptionPlaceholder')}"></textarea></label><label>${t('admin.englishDescription')}<textarea name="descriptionEn" rows="4" placeholder="${t('admin.englishDescriptionPlaceholder')}"></textarea></label>`
+      translations.innerHTML = `<p class="eyebrow dark">${t('admin.englishVersions')}</p><label>${t('admin.frenchTitle')}<input name="titleFr" placeholder="${t('admin.frenchTitlePlaceholder')}"></label><label>${t('admin.englishTitle')}<input name="titleEn" placeholder="${t('admin.englishTitlePlaceholder')}"></label><label>${t('admin.frenchDescription')}<textarea name="descriptionFr" rows="4" placeholder="${t('admin.frenchDescriptionPlaceholder')}"></textarea></label><label>${t('admin.englishDescription')}<textarea name="descriptionEn" rows="4" placeholder="${t('admin.englishDescriptionPlaceholder')}"></textarea></label><button type="button" class="button-dark translate-content-button">${t('admin.translateToEnglish')}</button><small class="translation-status"></small>`
       title?.closest('label')?.insertAdjacentElement('afterend', translations)
+      const translateButton = translations.querySelector<HTMLButtonElement>('.translate-content-button')
+      const translationStatus = translations.querySelector<HTMLElement>('.translation-status')
+      translateButton?.addEventListener('click', async () => {
+        if (!translateButton) return
+        const frenchTitle = translations.querySelector<HTMLInputElement>('[name="titleFr"]')
+        const frenchDescription = translations.querySelector<HTMLTextAreaElement>('[name="descriptionFr"]')
+        const englishTitle = translations.querySelector<HTMLInputElement>('[name="titleEn"]')
+        const englishDescription = translations.querySelector<HTMLTextAreaElement>('[name="descriptionEn"]')
+        if (!frenchTitle?.value.trim() && !frenchDescription?.value.trim()) {
+          if (translationStatus) translationStatus.textContent = t('admin.translationMissingSource')
+          return
+        }
+        translateButton.disabled = true
+        translateButton.textContent = t('admin.translating')
+        if (translationStatus) translationStatus.textContent = ''
+        try {
+          const translated = await translatePropertyContent(frenchTitle?.value ?? '', frenchDescription?.value ?? '')
+          if (englishTitle) englishTitle.value = translated.title
+          if (englishDescription) englishDescription.value = translated.description
+          if (translationStatus) translationStatus.textContent = t('admin.translationSuccess')
+        } catch {
+          if (translationStatus) translationStatus.textContent = t('admin.translationError')
+        } finally {
+          translateButton.disabled = false
+          translateButton.textContent = t('admin.translateToEnglish')
+        }
+      })
       if (description) {
         description.addEventListener('input', () => {
           const frenchDescription = form.querySelector<HTMLTextAreaElement>('[name="descriptionFr"]')

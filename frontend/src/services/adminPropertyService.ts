@@ -52,6 +52,33 @@ export async function createProperty(payload: CreatePropertyPayload) {
   return response.data
 }
 
+export async function translatePropertyContent(title: string, description: string) {
+  try {
+    const response = await apiClient.post<{ title: string; description: string }>('/admin/translation', { title, description }, {
+      headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
+    })
+    return response.data
+  } catch {
+    const [translatedTitle, translatedDescription] = await Promise.all([
+      translateWithPublicProvider(title),
+      translateWithPublicProvider(description),
+    ])
+    return { title: translatedTitle, description: translatedDescription }
+  }
+}
+
+
+async function translateWithPublicProvider(text: string) {
+  if (!text.trim()) return ''
+  const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=fr|en`)
+  if (!response.ok) throw new Error('Translation provider unavailable')
+  const data = await response.json() as { responseData?: { translatedText?: string }; responseStatus?: number }
+  const translatedText = data.responseData?.translatedText
+  if ((data.responseStatus && data.responseStatus >= 400) || !translatedText) {
+    throw new Error('Translation provider unavailable')
+  }
+  return translatedText
+}
 export async function updateProperty(id: number, payload: CreatePropertyPayload) {
   const response = await apiClient.put<PropertySummary>(`/properties/${id}`, payload, {
     headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },

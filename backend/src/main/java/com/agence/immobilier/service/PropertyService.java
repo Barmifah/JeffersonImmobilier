@@ -41,8 +41,8 @@ public class PropertyService {
     @Transactional(readOnly = true)
     public List<PropertyResponse> findPublished(OperationType operationType) {
         List<Property> properties = operationType == null
-                ? propertyRepository.findByOperationTypeAndStatus(OperationType.VENTE, PropertyStatus.AVAILABLE)
-                : propertyRepository.findByOperationTypeAndStatus(operationType, PropertyStatus.AVAILABLE);
+                ? propertyRepository.findByOperationTypeAndStatusOrderByCreatedAtDesc(OperationType.VENTE, PropertyStatus.AVAILABLE)
+                : propertyRepository.findByOperationTypeAndStatusOrderByCreatedAtDesc(operationType, PropertyStatus.AVAILABLE);
         return properties.stream().map(this::toResponse).toList();
     }
 

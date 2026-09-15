@@ -13,6 +13,7 @@ export interface PropertySearchParams {
 
 export interface PropertySummary {
   id: number
+  createdAt: string
   reference: string
   title: string
   titleFr?: string
@@ -37,6 +38,12 @@ export interface PropertySummary {
   imageUrls: string[]
   features?: string[]
   featureIds?: number[]
+}
+
+export function sortPropertiesByRecency(properties: PropertySummary[]) {
+  return [...properties].sort((first, second) =>
+    new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime(),
+  )
 }
 
 export async function getPublishedProperties(operationType?: PropertyOperation) {

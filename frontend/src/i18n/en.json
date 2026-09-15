@@ -34,7 +34,7 @@
   },
   "seo": {
     "homeTitle": "Jefferson Immobilier | Real estate agency in Burkina Faso",
-    "homeDescription": "Discover houses, villas, apartments and land offered by Jefferson Immobilier in Burkina Faso."
+    "homeDescription": "Discover houses, villas, apartments, duplexes, triplexes, buildings, offices, warehouses, shops, plots and land offered by Jefferson Immobilier in Burkina Faso."
   },
   "home": {
     "eyebrow": "Real estate, with a head start",
@@ -71,6 +71,9 @@
     "apartment": "Apartment",
     "land": "Land",
     "villa": "Villa",
+    "new": "New",
+    "forSale": "For sale",
+    "forRent": "For rent",
     "details": "View details",
     "available": "Available",
     "bedrooms": "bedrooms",
@@ -103,8 +106,8 @@
     "rent": "Properties for rent",
     "land": "Buildable land",
     "forProjects": "for your projects.",
-    "buyDescription": "Houses, villas and apartments for sale selected by Jefferson Immobilier.",
-    "rentDescription": "Houses, villas and apartments for rent in Burkina Faso.",
+    "buyDescription": "Houses, villas, apartments, duplexes, triplexes, buildings, offices, warehouses, shops, plots and land for sale selected by Jefferson Immobilier.",
+    "rentDescription": "Houses, villas, apartments, duplexes, triplexes, buildings, offices, warehouses and shops for rent in Burkina Faso.",
     "landDescription": "Land for sale for your property projects in Burkina Faso.",
     "allTypes": "All types",
     "allBudgets": "Maximum budget",
@@ -115,7 +118,7 @@
     "viewListings": "View listings",
     "immobilierBurkina": "Real estate in",
     "burkinaFaso": "Burkina Faso.",
-    "burkinaDescription": "Houses, apartments, villas and land selected by Jefferson Immobilier in Burkina Faso.",
+    "burkinaDescription": "Houses, apartments, villas, duplexes, triplexes, buildings, offices, warehouses, shops, plots and land selected by Jefferson Immobilier in Burkina Faso.",
     "ouaga": "Ouagadougou.",
     "ouagaDescription": "Discover real estate opportunities in Ouagadougou with Jefferson Immobilier.",
     "bobo": "Bobo-Dioulasso.",
@@ -148,7 +151,7 @@
     "atCity": "in {{city}}.",
     "exploreCity": "Discover the city",
     "seoTitle": "Real estate in {{city}} | Jefferson Immobilier",
-    "seoDescription": "Discover properties offered by Jefferson Immobilier in {{city}}. Houses, apartments, villas and land."
+    "seoDescription": "Discover properties offered by Jefferson Immobilier in {{city}}: houses, apartments, villas, duplexes, triplexes, buildings, offices, warehouses, shops, plots and land."
   },
   "about": {
     "label": "The agency",
@@ -198,7 +201,7 @@
     "q1": "How do I visit a property?",
     "q1Text": "Contact our team by WhatsApp or email to arrange an appointment.",
     "q2": "What properties do you offer?",
-    "q2Text": "Houses, villas, apartments and land selected in Burkina Faso.",
+    "q2Text": "Houses, villas, apartments, duplexes, triplexes, buildings, offices, warehouses, shops, plots and land selected in Burkina Faso.",
     "q3": "Where do you operate?",
     "q3Text": "Our catalog covers mainly Ouagadougou and Bobo-Dioulasso.",
     "seoTitle": "FAQ | Jefferson Immobilier",
@@ -239,6 +242,11 @@
     "frenchDescriptionPlaceholder": "Description in French",
     "englishDescription": "English description",
     "englishDescriptionPlaceholder": "Description in English",
+      "translateToEnglish": "Translate to English",
+      "translating": "Translating...",
+      "translationSuccess": "Translation complete. You can still edit the English text.",
+      "translationMissingSource": "Enter at least one French text.",
+      "translationError": "Translation is unavailable. You can enter the English text manually.",
     "facilities": "Facilities",
     "listingTitle": "Listing title",
     "listingTitlePlaceholder": "Ex. Contemporary villa with pool",
