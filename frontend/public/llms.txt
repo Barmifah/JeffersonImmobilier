@@ -1,0 +1,30 @@
+# Jefferson Immobilier
+
+> Jefferson Immobilier est une agence immobiliere au Burkina Faso. Le site presente des biens disponibles a l'achat et a la location, notamment a Ouagadougou et Bobo-Dioulasso.
+
+## Sections principales
+
+- [Accueil](https://jeffersonimmobilier.bf/): Presentation de l'agence et selection de biens.
+- [Acheter](https://jeffersonimmobilier.bf/acheter): Biens immobiliers disponibles a la vente.
+- [Louer](https://jeffersonimmobilier.bf/louer): Biens immobiliers disponibles a la location.
+- [Terrains](https://jeffersonimmobilier.bf/terrains): Terrains disponibles pour les projets immobiliers.
+- [A propos](https://jeffersonimmobilier.bf/a-propos): Presentation de l'agence.
+- [Contact](https://jeffersonimmobilier.bf/contact): Contacter l'agence pour un projet ou une visite.
+- [FAQ](https://jeffersonimmobilier.bf/faq): Questions frequentes sur les biens et les services.
+
+## Types de biens
+
+Le catalogue comprend des maisons, villas, appartements, terrains, duplex, triplex, immeubles, bureaux, entrepots, boutiques et parcelles.
+
+## Zones desservies
+
+Ouagadougou, notamment Ouaga 2000, et Bobo-Dioulasso au Burkina Faso.
+
+## Donnees structurees
+
+Les annonces publiques sont accessibles depuis les pages individuelles du catalogue et peuvent contenir un titre, une description, un type de bien, une operation (vente ou location), un prix, une localisation, une surface, des chambres et des images.
+
+## Ressources
+
+- [Sitemap](https://jeffersonimmobilier.bf/sitemap.xml): Liste des URLs publiques du site.
+- [Robots](https://jeffersonimmobilier.bf/robots.txt): Directives d'exploration pour les moteurs de recherche.
