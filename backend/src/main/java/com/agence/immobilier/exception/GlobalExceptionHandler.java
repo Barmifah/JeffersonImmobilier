@@ -34,7 +34,30 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException exception) {
-        return error(HttpStatus.CONFLICT, "La référence ou le slug de cette annonce existe déjà", Map.of());
+        String constraint = findConstraint(exception);
+        String message = switch (constraint) {
+            case "properties_reference_key" -> "La référence de cette annonce existe déjà";
+            case "properties_slug_key" -> "Le slug de cette annonce existe déjà";
+            case "property_feature_links_pkey" -> "Une caractéristique est présente deux fois dans cette annonce";
+            default -> "L'annonce ne peut pas être enregistrée : contrainte de base de données " + constraint;
+        };
+        return error(HttpStatus.CONFLICT, message, Map.of("constraint", constraint));
+    }
+
+    private String findConstraint(DataIntegrityViolationException exception) {
+        Throwable current = exception;
+        while (current != null) {
+            try {
+                Object constraintName = current.getClass().getMethod("getConstraintName").invoke(current);
+                if (constraintName instanceof String name && !name.isBlank()) {
+                    return name;
+                }
+            } catch (ReflectiveOperationException ignored) {
+                // Continue with the next wrapped database exception.
+            }
+            current = current.getCause();
+        }
+        return "inconnue";
     }
 
     private ResponseEntity<ApiError> error(HttpStatus status, String message, Map<String, String> fields) {
