@@ -170,31 +170,17 @@ public class PropertyService {
     }
 
     private String uniqueReference(String requestedReference) {
-        String reference = requestedReference.trim();
-        if (propertyRepository.findByReference(reference).isEmpty()) {
-            return reference;
-        }
-        return uniqueValue(reference, 40, true);
+        return uniqueValue(requestedReference.trim(), 40);
     }
 
     private String uniqueSlug(String requestedSlug) {
-        String slug = requestedSlug.trim();
-        if (propertyRepository.findBySlug(slug).isEmpty()) {
-            return slug;
-        }
-        return uniqueValue(slug, 220, false);
+        return uniqueValue(requestedSlug.trim(), 220);
     }
 
-    private String uniqueValue(String value, int maxLength, boolean reference) {
-        String suffix = "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    private String uniqueValue(String value, int maxLength) {
+        String suffix = "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         int baseLength = Math.max(1, maxLength - suffix.length());
-        String candidate = value.substring(0, Math.min(value.length(), baseLength)) + suffix;
-        while ((reference ? propertyRepository.findByReference(candidate) : propertyRepository.findBySlug(candidate)).isPresent()) {
-            suffix = "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-            baseLength = Math.max(1, maxLength - suffix.length());
-            candidate = value.substring(0, Math.min(value.length(), baseLength)) + suffix;
-        }
-        return candidate;
+        return value.substring(0, Math.min(value.length(), baseLength)) + suffix;
     }
 
     private PropertyResponse toResponse(Property property) {
