@@ -455,6 +455,10 @@ function AdminListingForm() {
     if (isSaving) return
     const form = new FormData(event.currentTarget)
     const reference = String(form.get('reference'))
+    const creationSuffix = crypto.randomUUID().replace(/-/g, '').slice(0, 10)
+    const uniqueReference = `${reference}-${creationSuffix}`.slice(0, 40)
+    const baseSlug = String(form.get('title')).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    const uniqueSlug = `${baseSlug}-${creationSuffix}`.slice(0, 220)
     setIsSaving(true)
     setSaveSucceeded(false)
       setSaveStatus(t('admin.saveProperty'))
@@ -463,8 +467,8 @@ function AdminListingForm() {
         title: String(form.get('title')),
         titleFr: String(form.get('titleFr') || form.get('title')),
         titleEn: String(form.get('titleEn') || ''),
-        reference,
-        slug: String(form.get('title')).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-'),
+        reference: uniqueReference,
+        slug: uniqueSlug,
         description: String(form.get('description')),
         descriptionFr: String(form.get('descriptionFr') || form.get('description')),
         descriptionEn: String(form.get('descriptionEn') || ''),
