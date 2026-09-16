@@ -84,6 +84,7 @@ public class PropertyService {
 
     @Transactional
     public PropertyResponse create(PropertyRequest request) {
+        propertyRepository.synchronizeIdSequence();
         Property property = new Property();
         copyRequest(request, property);
         property.setReference(uniqueReference(request.reference()));
