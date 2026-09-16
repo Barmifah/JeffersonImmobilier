@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import type { ChangeEvent, FormEvent } from 'react'
@@ -324,6 +324,7 @@ function AdminListingForm() {
   const [saveStatus, setSaveStatus] = useState('')
   const [saveSucceeded, setSaveSucceeded] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const submitLock = useRef(false)
   const navigate = useNavigate()
   useEffect(() => {
     if (!localStorage.getItem('jefferson_access_token')) navigate('/admin/login', { replace: true })
@@ -451,8 +452,9 @@ function AdminListingForm() {
     }
   }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-      event.preventDefault();
-    if (isSaving) return
+    event.preventDefault()
+    if (submitLock.current || isSaving) return
+    submitLock.current = true
     const form = new FormData(event.currentTarget)
     const reference = String(form.get('reference'))
     const creationSuffix = crypto.randomUUID().replace(/-/g, '').slice(0, 10)
@@ -495,6 +497,7 @@ function AdminListingForm() {
       setSaveSucceeded(false)
       setSaveStatus(message)
     } finally {
+      submitLock.current = false
       setIsSaving(false)
     }
   }
