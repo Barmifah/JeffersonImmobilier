@@ -42,6 +42,7 @@ public class GlobalExceptionHandler {
         String message = switch (constraint) {
             case "properties_reference_key" -> "La référence de cette annonce existe déjà";
             case "properties_slug_key" -> "Le slug de cette annonce existe déjà";
+            case "properties_property_type_check" -> "Ce type de bien n'est pas encore autorisé par la base de données";
             case "property_feature_links_pkey" -> "Une caractéristique est présente deux fois dans cette annonce";
             default -> "L'annonce ne peut pas être enregistrée : contrainte de base de données " + constraint;
         };

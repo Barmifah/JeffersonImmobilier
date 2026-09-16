@@ -33,13 +33,12 @@ public class PropertyTypeConstraintMigration {
             );
 
             if (Boolean.TRUE.equals(tableExists)) {
-                String sql = """
-                        ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_property_type_check;
+                jdbcTemplate.execute("ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_property_type_check");
+                jdbcTemplate.execute("""
                         ALTER TABLE properties
                         ADD CONSTRAINT properties_property_type_check
-                        CHECK ((property_type)::text = ANY ((ARRAY['VILLA'::character varying, 'MAISON'::character varying, 'APPARTEMENT'::character varying, 'DUPLEX'::character varying, 'TRIPLEX'::character varying, 'TERRAIN'::character varying, 'BUREAU'::character varying, 'ENTREPOT'::character varying, 'BOUTIQUE'::character varying, 'PARCELLE'::character varying, 'LOCAL_COMMERCIAL'::character varying, 'IMMEUBLE'::character varying, 'AUTRE'::character varying])::text[]));
-                        """;
-                jdbcTemplate.execute(sql);
+                        CHECK ((property_type)::text = ANY ((ARRAY['VILLA'::character varying, 'MAISON'::character varying, 'APPARTEMENT'::character varying, 'DUPLEX'::character varying, 'TRIPLEX'::character varying, 'TERRAIN'::character varying, 'BUREAU'::character varying, 'ENTREPOT'::character varying, 'BOUTIQUE'::character varying, 'PARCELLE'::character varying, 'LOCAL_COMMERCIAL'::character varying, 'IMMEUBLE'::character varying, 'AUTRE'::character varying])::text[]))
+                        """);
             }
         };
     }
