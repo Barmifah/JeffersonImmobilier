@@ -13,6 +13,7 @@ import com.agence.immobilier.repository.PropertyViewRepository;
 import com.agence.immobilier.repository.PropertyFeatureRepository;
 import com.agence.immobilier.repository.PropertyInquiryRepository;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -83,12 +84,10 @@ public class PropertyService {
 
     @Transactional
     public PropertyResponse create(PropertyRequest request) {
-        var existing = propertyRepository.findByReference(request.reference());
-        if (existing.isPresent()) {
-            return toResponse(existing.get());
-        }
         Property property = new Property();
         copyRequest(request, property);
+        property.setReference(uniqueReference(request.reference()));
+        property.setSlug(uniqueSlug(request.slug()));
         return toResponse(propertyRepository.save(property));
     }
 
@@ -99,6 +98,9 @@ public class PropertyService {
         propertyRepository.findByReference(request.reference())
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> { throw new ResponseStatusException(HttpStatus.CONFLICT, "Référence déjà utilisée"); });
+        propertyRepository.findBySlug(request.slug())
+            .filter(existing -> !existing.getId().equals(id))
+            .ifPresent(existing -> { throw new ResponseStatusException(HttpStatus.CONFLICT, "Slug déjà utilisé"); });
         copyRequest(request, property);
         return toResponse(property);
     }
@@ -165,6 +167,34 @@ public class PropertyService {
                 property.getImages().add(image);
             });
         }
+    }
+
+    private String uniqueReference(String requestedReference) {
+        String reference = requestedReference.trim();
+        if (propertyRepository.findByReference(reference).isEmpty()) {
+            return reference;
+        }
+        return uniqueValue(reference, 40, true);
+    }
+
+    private String uniqueSlug(String requestedSlug) {
+        String slug = requestedSlug.trim();
+        if (propertyRepository.findBySlug(slug).isEmpty()) {
+            return slug;
+        }
+        return uniqueValue(slug, 220, false);
+    }
+
+    private String uniqueValue(String value, int maxLength, boolean reference) {
+        String suffix = "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        int baseLength = Math.max(1, maxLength - suffix.length());
+        String candidate = value.substring(0, Math.min(value.length(), baseLength)) + suffix;
+        while ((reference ? propertyRepository.findByReference(candidate) : propertyRepository.findBySlug(candidate)).isPresent()) {
+            suffix = "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            baseLength = Math.max(1, maxLength - suffix.length());
+            candidate = value.substring(0, Math.min(value.length(), baseLength)) + suffix;
+        }
+        return candidate;
     }
 
     private PropertyResponse toResponse(Property property) {

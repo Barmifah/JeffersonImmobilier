@@ -484,19 +484,7 @@ function AdminListingForm() {
         setSaveSucceeded(true)
       event.currentTarget.reset()
       setUploadedImages([])
-    } catch (error) {
-        try {
-          const dashboard = await getAdminDashboard()
-          if (dashboard.properties.some((property) => property.reference === reference)) {
-            setSaveStatus(t('admin.propertySaved'))
-            setSaveSucceeded(true)
-            event.currentTarget.reset()
-            setUploadedImages([])
-            return
-          }
-        } catch {
-          // Conserve l'erreur initiale si le contrôle de confirmation échoue.
-        }
+      } catch (error) {
       const message = axios.isAxiosError(error) && typeof error.response?.data?.message === 'string'
         ? `${t('admin.saveErrorPrefix')} ${error.response.data.message}`
         : t('admin.saveError')
