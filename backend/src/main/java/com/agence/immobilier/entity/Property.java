@@ -35,13 +35,13 @@ public class Property {
     @Column(nullable = false, unique = true, length = 40)
     private String reference;
 
-    @Column(nullable = false, length = 180)
+    @Column(nullable = false, length = 500)
     private String title;
 
-    @Column(length = 180)
+    @Column(length = 500)
     private String titleFr;
 
-    @Column(length = 180)
+    @Column(length = 500)
     private String titleEn;
 
     @Column(nullable = false, unique = true, length = 220)
