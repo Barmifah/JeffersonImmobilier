@@ -3,6 +3,8 @@ package com.agence.immobilier.exception;
 import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,6 +16,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 @RestControllerAdvice
 @SuppressWarnings("null")
 public class GlobalExceptionHandler {
+    private static final Pattern CONSTRAINT_PATTERN = Pattern.compile("constraint \\\"([^\\\"]+)\\\"", Pattern.CASE_INSENSITIVE);
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception) {
         Map<String, String> fields = exception.getBindingResult().getFieldErrors().stream()
@@ -53,7 +57,10 @@ public class GlobalExceptionHandler {
                     return name;
                 }
             } catch (ReflectiveOperationException ignored) {
-                // Continue with the next wrapped database exception.
+                Matcher matcher = CONSTRAINT_PATTERN.matcher(String.valueOf(current.getMessage()));
+                if (matcher.find()) {
+                    return matcher.group(1);
+                }
             }
             current = current.getCause();
         }

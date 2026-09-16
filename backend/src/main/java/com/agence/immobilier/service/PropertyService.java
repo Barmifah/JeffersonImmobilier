@@ -13,6 +13,7 @@ import com.agence.immobilier.repository.PropertyViewRepository;
 import com.agence.immobilier.repository.PropertyFeatureRepository;
 import com.agence.immobilier.repository.PropertyInquiryRepository;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
@@ -154,7 +155,8 @@ public class PropertyService {
         property.setParking(Boolean.TRUE.equals(request.parking()));
         property.getFeatures().clear();
         if (request.featureIds() != null && !request.featureIds().isEmpty()) {
-            property.getFeatures().addAll(propertyFeatureRepository.findAllById(request.featureIds()));
+            List<Long> distinctFeatureIds = new LinkedHashSet<>(request.featureIds()).stream().toList();
+            property.getFeatures().addAll(propertyFeatureRepository.findAllById(distinctFeatureIds));
         }
         property.getImages().clear();
         if (request.imageUrls() != null) {
