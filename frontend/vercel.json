@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "/sitemap.xml"
+      "destination": "https://api.jeffersonimmobilier.bf/sitemap.xml"
     },
     {
       "source": "/robots.txt",
