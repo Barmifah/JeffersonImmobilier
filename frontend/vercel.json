@@ -1,6 +1,17 @@
 {
   "rewrites": [
     {
+      "source": "/biens/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp).*"
+        }
+      ],
+      "destination": "https://api.jeffersonimmobilier.bf/biens/:slug"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "https://api.jeffersonimmobilier.bf/sitemap.xml"
     },
